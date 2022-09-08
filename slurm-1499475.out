@@ -1,0 +1,14 @@
+
+JOB STATISTICS
+==============
+Job ID: 1499475
+Cluster: snellius
+User/Group: muiss/muiss
+State: COMPLETED (exit code 0)
+Nodes: 1
+Cores per node: 32
+CPU Utilized: 00:01:13
+CPU Efficiency: 0.06% of 1-11:31:44 core-walltime
+Job Wall-clock time: 01:06:37
+Memory Utilized: 177.97 MB
+Memory Efficiency: 0.29% of 60.00 GB

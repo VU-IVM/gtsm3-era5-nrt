@@ -1,0 +1,53 @@
+no change     /home/muiss/miniconda3/condabin/conda
+no change     /home/muiss/miniconda3/bin/conda
+no change     /home/muiss/miniconda3/bin/conda-env
+no change     /home/muiss/miniconda3/bin/activate
+no change     /home/muiss/miniconda3/bin/deactivate
+no change     /home/muiss/miniconda3/etc/profile.d/conda.sh
+no change     /home/muiss/miniconda3/etc/fish/conf.d/conda.fish
+no change     /home/muiss/miniconda3/shell/condabin/Conda.psm1
+no change     /home/muiss/miniconda3/shell/condabin/conda-hook.ps1
+no change     /home/muiss/miniconda3/lib/python3.9/site-packages/xontrib/conda.xsh
+no change     /home/muiss/miniconda3/etc/profile.d/conda.csh
+no change     /home/muiss/.bashrc
+No action taken.
+
+CommandNotFoundError: Your shell has not been properly configured to use 'conda activate'.
+To initialize your shell, run
+
+    $ conda init <SHELL_NAME>
+
+Currently supported shells are:
+  - bash
+  - fish
+  - tcsh
+  - xonsh
+  - zsh
+  - powershell
+
+See 'conda init --help' for more information and options.
+
+IMPORTANT: You may need to close and restart your shell after running 'conda init'.
+
+
+01-01-2021 22-12-2020 01-01-2022
+01-01-2019 22-12-2018 01-01-2020
+01-01-2020 22-12-2019 01-01-2021
+python: can't open file '/gpfs/home2/muiss/gtsm3-era5-nrt/p2_preprocess_ERA5_CDS.py': [Errno 2] No such file or directory
+python: can't open file '/gpfs/home2/muiss/gtsm3-era5-nrt/p2_preprocess_ERA5_CDS.py': [Errno 2] No such file or directory
+python: can't open file '/gpfs/home2/muiss/gtsm3-era5-nrt/p2_preprocess_ERA5_CDS.py': [Errno 2] No such file or directory
+
+JOB STATISTICS
+==============
+Job ID: 1502655
+Cluster: snellius
+User/Group: muiss/muiss
+State: RUNNING
+Nodes: 1
+Cores per node: 32
+CPU Utilized: 00:00:00
+CPU Efficiency: 0.00% of 00:08:00 core-walltime
+Job Wall-clock time: 00:00:15
+Memory Utilized: 0.00 MB (estimated maximum)
+Memory Efficiency: 0.00% of 60.00 GB (1.88 GB/core)
+WARNING: Efficiency statistics may be misleading for RUNNING jobs.
