@@ -9,7 +9,7 @@ Code for GTSMv3.0 near-real time simulations with ERA5 on Snellius (for Sea Leve
 - fix lat coordinates
 - change standard names
 - merge daily files to yearly/monthly
--
+
 # Step 3: Start GTSM model simulation
 - use singularity containers
 - template files
