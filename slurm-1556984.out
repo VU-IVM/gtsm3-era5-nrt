@@ -1,0 +1,24 @@
+/gpfs/work1/0/einf3499/CDS_tides
+/gpfs/work1/0/einf3499/CDS_tides
+/gpfs/work1/0/einf3499/CDS_tides
+/gpfs/work1/0/einf3499/CDS_tides
+/gpfs/work1/0/einf3499/CDS_tides
+/gpfs/work1/0/einf3499/CDS_tides
+/gpfs/work1/0/einf3499/CDS_tides
+/var/spool/slurm/slurmd/job1556984/slurm_script: line 17: syntax error near unexpected token `done'
+/var/spool/slurm/slurmd/job1556984/slurm_script: line 17: `done'
+/gpfs/work1/0/einf3499/CDS_tides
+
+JOB STATISTICS
+==============
+Job ID: 1556984
+Cluster: snellius
+User/Group: muiss/muiss
+State: FAILED (exit code 2)
+Nodes: 1
+Cores per node: 32
+CPU Utilized: 00:00:00
+CPU Efficiency: 0.00% of 00:04:48 core-walltime
+Job Wall-clock time: 00:00:09
+Memory Utilized: 1.53 MB
+Memory Efficiency: 0.00% of 60.00 GB
