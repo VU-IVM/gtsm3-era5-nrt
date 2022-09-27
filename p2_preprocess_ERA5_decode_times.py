@@ -16,11 +16,9 @@ def convert2FM_yearly_runs(tstart,idir):
   import numpy as np
   import pandas as pd
   import glob
-  # debug
-  debug=False
-  if debug==True:
-    tstart=dt.datetime.strptime('01-01-2021', '%d-%m-%Y') 
-    idir="/gpfs/work1/0/einf3499/meteo_ERA5"
+  ## for debugging 
+  # tstart=dt.datetime.strptime('01-01-2021', '%d-%m-%Y') 
+  # idir="/gpfs/work1/0/einf3499/meteo_ERA5"
   # create variables 'dictionary' for filename pattern, variable name in ncin, variable name in ncout  
   var_dict = {
     "u10" : {
@@ -40,64 +38,78 @@ def convert2FM_yearly_runs(tstart,idir):
       "long_name" : "Mean sea level pressure",
       "units" : "Pa",
       "scale_factor" : float(1),
-      "offset" : float(100000)}}              
+      "offset" : float(100000)},    
+    "latitude" : {
+      "standard_name" : "latitude",
+      "long_name" : "latitude",
+      "units" : "degrees north"},
+    "longitude" : {
+      "standard_name" : "longitude",
+      "longd_name" : "longitude",
+      "units" : "degrees_east"}}
+  coor_dict = {
+    "latitude" : {
+      "standard_name" : "latitude",
+      "long_name" : "latitude",
+      "units" : "degrees north"},
+    "longitude" : {
+      "standard_name" : "longitude",
+      "longd_name" : "longitude",
+      "units" : "degrees_east"}}
+  time_unit = "hours since 1900-01-01 00:00:00" # hard coded
   # define ref/start/stop times 
   spinup_period = [1,1,15,0] # imposed 1 day zero, 1 day transition, 15 days spinup
-  reftime=dt.datetime(1900,1,1) #imposed
   date_start_zero = dt.datetime(tstart.year,1,1)-dt.timedelta(days=int(np.sum(spinup_period[0:3]))) #eg 15 dec
   date_start_transition = date_start_zero+dt.timedelta(days=spinup_period[0]) #eg 16 dec
   date_start_spinup = date_start_zero+dt.timedelta(days=spinup_period[0]+spinup_period[1]) #eg 17 dec
   date_end = dt.datetime(tstart.year+1,1,1)
   # import dataset
-  ds = xr.open_mfdataset(os.path.join(idir,"ERA5_CDS_atm_%s*.nc" %(tstart.year)))
-  ds_spinup = xr.open_mfdataset(os.path.join(idir,"ERA5_CDS_atm_%s*.nc" %(date_start_zero.strftime('%Y-%m'))))
-  ds_merged = xr.combine_by_coords([ds, ds_spinup],compat='equals',combine_attrs='override').sel(time=slice(date_start_zero,date_end))
+  ifiles = os.path.join(idir,"ERA5_CDS_atm_*.nc") #%(tstart.year))]#,os.path.join(idir,"ERA5_CDS_atm_%s*.nc" %(date_start_zero.strftime('%Y-%m')))]
+  ds = xr.open_mfdataset(ifiles,chunks='auto',parallel=True).sel(time=slice(date_start_zero,date_end)); ds.close()
   # copy latitude and create new longitude
   lats = ds['latitude'][:]
   lons = ds['longitude'][:]
   part1 = (ds.longitude>178) #move 180:360 part to -180:0 so field now runs from longitute -180 to 180
   part2 = (ds.longitude<182) #take a bit of overlap to avoid interpolation issues at edge
   lons_new=np.hstack((lons[part1]-360,lons[part2]))
-  # read times and create time
-  times = ds_merged['time'][:]
-  dates = pd.to_datetime(pd.DataFrame({'year':times.dt.year, 'month':times.dt.month, 'day':times.dt.day, 'hour': times.dt.hour, 'minute':times.dt.minute, 'second':times.dt.second}))
-  rel_times = (dates-reftime) / np.timedelta64(1, 'h') # relative time in hours since reftime
-  # copy v10, u10, msl to new dataset    
+  # load data 
   for varname in var_dict.keys():
     print(varname)
     datasets = []
-    for itime, time in enumerate(times):
-      var = ds_merged[varname].isel(time=itime)
+    for itime, time in enumerate(ds.time):
+      var = ds[varname].isel(time=itime)
       var_new = np.hstack((var[:,part1],var[:,part2]))
-      coords = {'latitude': lats, 'longitude': lons_new, 'time_dt': time.values, 'time':rel_times[itime]}
+      coords = {'latitude': lats, 'longitude': lons_new, 'time': time.values}
       da = xr.DataArray(var_new, coords=coords, dims=['latitude', 'longitude'])
       da.name = varname
       dat = xr.concat([da],'time')
       datasets.append(dat)
     ds_var_merged = xr.concat(datasets, dim='time') 
-    ds_var_merged = ds_var_merged.where(ds_var_merged.time_dt >= np.datetime64(date_start_spinup), 0) # values to zero for initalization SLR
-    bool = (ds_var_merged.time_dt > np.datetime64(date_start_transition)) & (ds_var_merged.time_dt < np.datetime64(date_start_spinup)) # select transition period
+    # drop times   
+    ds_var_merged = ds_var_merged.where(ds_var_merged.time >= np.datetime64(date_start_spinup), 0) # values to zero for initalization SLR
+    bool = (ds_var_merged.time > np.datetime64(date_start_transition)) & (ds_var_merged.time < np.datetime64(date_start_spinup)) # select transition period
     ds_var_merged = ds_var_merged.where(~bool, drop=True) # drop times for transition period
-    # drop time
-    ds_var_merged = ds_var_merged.drop('time_dt')
     # set attributes + encoding
     ds_var_merged.attrs['standard_name'] = var_dict[varname]['standard_name']
     ds_var_merged.attrs['long_name'] = var_dict[varname]['long_name']
     ds_var_merged.attrs['units'] = var_dict[varname]['units']
-    ds_var_merged.time.attrs['units'] = "hours since %s" % (reftime)
-    comp = dict(scale_factor=var_dict[varname]['scale_factor'], add_offset=var_dict[varname]['offset'])
-    encoding = {varname: comp}
+    for coor in coor_dict.keys():
+      ds_var_merged[coor].attrs['standard_name'] = coor_dict[coor]['standard_name']
+      ds_var_merged[coor].attrs['units'] = coor_dict[coor]['units']
+    comp = dict(scale_factor=var_dict[varname]['scale_factor'], add_offset=var_dict[varname]['offset'])  
+    encoding = {varname: comp, 'time':{'units': time_unit}} 
     ofile=os.path.join(idir.replace('meteo_ERA5','meteo_ERA5_fm'),"ERA5_CDS_atm_%s_%s_%s.nc" %(varname, dt.datetime.strftime(tstart, "%Y-%m-%d"),dt.datetime.strftime(date_end, "%Y-%m-%d")))
     print("Saving file as:",ofile)
-    ds_var_merged.to_netcdf(ofile, encoding=encoding)
+    ds_var_merged.to_netcdf(ofile, encoding=encoding, format='NETCDF4', engine='netcdf4'); ds_var_merged.close()
 
 if __name__ == "__main__":
     # read input arguments
     import os
     import datetime as dt
+    import xarray as xr
     if len(os.sys.argv)>0:
       tstart=dt.datetime.strptime(os.sys.argv[1], '%Y%m%d')
-      outdir=os.sys.argv[2]   
+      idir=os.sys.argv[2]   
       print(tstart)     
     else:
       raise RuntimeError('No arguments were provided\nFirst argument should indicate startdate as "%Y-%m-%d".\n Second argument for outdir. Script will download monthly files per day')

@@ -5,6 +5,7 @@
 #SBATCH --job-name=preprocERA5
 
 # load modules
+module purge
 module load 2021
 
 # settings
@@ -12,12 +13,13 @@ pdir=/gpfs/work1/0/einf3499/meteo_ERA5
 
 # yearly runs for 2019, 2020 and 2021
 for i in {2019..2021..1}; do
-  ( sim_start=$(date -d $i"-01-01" +%Y%m%d)
-    echo $sim_start 
-    conda run -n gtsm3-era5-nrt-slm python p2_preprocess_ERA5.py $sim_start $pdir
-    ) &
+#  (
+  sim_start=$(date -d $i"-01-01" +%Y%m%d)
+  echo $sim_start 
+  conda run -n gtsm3-era5-nrt-slm python p2_preprocess_ERA5_decode_times.py $sim_start $pdir
+#    ) &
 done
-wait
+#wait
 
 # WORKFLOW for preparation of forcing files
 #
