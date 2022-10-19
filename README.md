@@ -1,9 +1,9 @@
 # gtsm3-era5-nrt
 
-Code for GTSMv3.0 near-real time simulations with ERA5 on Snellius (for Sea Level Monitor)
+
 
 ## About the project
-The goal of these scripts are to autmatically run GTSM on Snellius. GTSM is forced with ERA5.
+The goal of these scripts are to autmatically run GTSM on Snellius. GTSM is forced with ERA5. Code for GTSMv3.0 near-real time simulations with ERA5 on Snellius (for Sea Level Monitor)
 
 ## File explanation
 
