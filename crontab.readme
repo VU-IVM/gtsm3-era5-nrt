@@ -1,0 +1,13 @@
+crontab -e # edit 
+crontab -l # list
+0 0 5 3,6,9,12 * ./workfl0w.sh  # every 3 months
+0 0 5 1-12 * ./workfl0w.sh # every month
+
+#SCRON --time 6:00:00
+#SCRON --cpus-per-task 4
+#SCRON --name "daily_sim"
+#SCRON --chdir /home/netid/project
+#SCRON -o my_simulations/%j-out.txt
+@daily ./simulation_v2_final.sh
+
+03 10,22 1 * * sbatch -Q /path/to/my_script.sh
