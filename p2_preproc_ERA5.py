@@ -2,7 +2,6 @@
 
 import os
 import os.path
-import click
 import xarray as xr
 import datetime as dt
 import numpy as np

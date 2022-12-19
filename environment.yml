@@ -140,7 +140,7 @@ dependencies:
   - mysql-libs=8.0.30=h28c427c_0
   - nco=5.1.0=h81bb2a3_2
   - ncurses=6.3=h27087fc_1
-  - netcdf-fortran=4.6.0=nompi_hc402ea5_101
+  - netcdf-fortran=4.6.0=nompi_hc402ea5_100
   - netcdf4=1.6.0=nompi_py310h9fd08d4_101
   - nspr=4.32=h9c3ff4c_1
   - nss=3.78=h2350873_0
