@@ -8,12 +8,6 @@ import numpy as np
 import pandas as pd
 import glob
 
-@click.command()
-@click.option('--input_dir', required=True, type=str,
-              help='Input directory for downloaded files',)
-@click.option('--date_string', required=True, type=str,
-              help='String with year and month of current month (in YYYY_MM format)',)
-  
 def convert2FM(input_dir,date_string):
   # create variables 'dictionary' for filename pattern, variable name in ncin, variable name in ncout  
   var_dict = {
@@ -45,6 +39,7 @@ def convert2FM(input_dir,date_string):
       "long_name" : "longitude",
       "units" : "degrees_east"}}
   time_unit = "hours since 1900-01-01 00:00:00" # hard coded
+  
   # define ref/start/stop times 
   tdate = dt.datetime.strptime(date_string, '%Y_%m').date()
   spinup_period = [1,1,15,0] # imposed 1 day zero, 1 day transition, 15 days spinup --> compute days of spinup required
@@ -52,9 +47,11 @@ def convert2FM(input_dir,date_string):
   date_start_transition = date_start_zero+dt.timedelta(days=spinup_period[0]) #eg 16 dec
   date_start_spinup = date_start_zero+dt.timedelta(days=spinup_period[0]+spinup_period[1]) #eg 17 dec
   date_end = dt.datetime(tdate.year,tdate.month+1,1)
+  
   # import dataset
   input_path = os.path.join(input_dir,f'ERA5_CDS_atm_{tdate.year}-{tdate.month:02}-*') 
   ds = xr.open_mfdataset(input_path,chunks='auto',parallel=True).sel(time=slice(date_start_zero,date_end)); ds.close()
+  
   # copy latitude and create new longitude
   lats = ds['latitude'][:]
   lons = ds['longitude'][:]

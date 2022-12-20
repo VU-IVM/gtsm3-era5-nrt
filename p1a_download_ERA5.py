@@ -47,4 +47,3 @@ if __name__ == "__main__":
     else:
       raise RuntimeError('No arguments were provided\nFirst argument should indicate startdate as "%Y-%m-%d".\n Second argument for outdir. Script will download monthly files per day')
     download_era5(tstart,outdir)
-    convert2FM('ERA5_CDS_atm_2015-01-01.nc')

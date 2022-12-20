@@ -4,7 +4,7 @@
 #SBATCH -p fat
 #SBATCH --job-name=preproc
 #SBATCH --mail-type=BEGIN,FAIL,END
-#SBATCH --mail-user=sanne.muis@deltares.nl
+#SBATCH --mail-user=natalia.aleksandrova@deltares.nl
 
 set -e 
 
@@ -13,7 +13,13 @@ module purge
 module load 2021
 
 # Folder paths
-folder_era5="/gpfs/work1/0/einf3499/meteo_ERA5"
+folder_era5="/gpfs/work1/0/einf3499/meteo_ERA5_extended"
 
-# Download ERA5 data and GTSM tides from CDS
-conda run -n gtsm3-era5-nrt-slm python p2_preproc_ERA5.py --input_dir $folder_era5 --date_string $1
+for yr in {1951..1951..1}; do
+(
+  echo $yr $folder_era5
+  conda run -n gtsm-era5-nrt-slm python p2_preproc_ERA5.py $yr $folder_era5
+) 
+done
+wait
+
