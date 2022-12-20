@@ -1,10 +1,5 @@
 #!/usr/bin/env python
 
-  """
-  Based on script by @veenstra from Oct 2022
-  Modified by @n-aleksandrova, Dec 2022
-  """
-
 #import matplotlib.pyplot as plt
 #plt.close('all')
 
@@ -19,20 +14,21 @@ def convert2FM(yr,input_dir):
   import pandas as pd
   import glob
 
-
   add_global_overlap = True #GTSM specific: extend data beyond -180 to 180 longitude
   zerostart = True #GTSM specific: extend data with 0-value fields 1 and 2 days before all_tstart
 
+  tstart = dt.datetime.strptime(yr, "%Y").date()
+  
   # define dates
   spinup_period = [1,1,15,0] # imposed 1 day zero, 1 day transition, 15 days spinup --> compute days of spinup required
-  date_start_zero = dt.datetime(yr,1,1)-dt.timedelta(days=int(np.sum(spinup_period[0:3]))) #eg 15 dec
+  date_start_zero = dt.datetime(tstart.year,1,1)-dt.timedelta(days=int(np.sum(spinup_period[0:3]))) #eg 15 dec
   date_start_transition = date_start_zero+dt.timedelta(days=spinup_period[0]) #eg 16 dec
   date_start_spinup = date_start_zero+dt.timedelta(days=spinup_period[0]+spinup_period[1]) #eg 17 dec
-  date_end = dt.datetime(yr+1,1,1)
+  date_end = dt.datetime(tstart.year+1,1,1)
 
   script_tstart = dt.datetime.now()
 
-  varkey_list = ['mslp','u10n','v10n'] #charnock, mean_sea_level_pressure, 10m_u_component_of_neutral_wind, 10m_v_component_of_neutral_wind
+  varkey_list = ['msl','u10','v10'] #charnock, mean_sea_level_pressure, 10m_u_component_of_neutral_wind, 10m_v_component_of_neutral_wind
 
   drop_variables = None
   preprocess = None
@@ -44,16 +40,18 @@ def convert2FM(yr,input_dir):
       os.makedirs(dir_output)
 
   #generating file list
-  dir_data = os.path.join(input_dir,f'ERA5_CDS_atm_{yr}-*-*.nc') 
+  dir_data = os.path.join(input_dir,f'ERA5_CDS_atm_*-*-*.nc')
+
+   
   file_list = glob.glob(dir_data)
 
-  print(f'opening multifile dataset of {len(file_list)} files matching "{fn_match_pattern}" (can take a while with lots of files)')
+  #print(f'opening multifile dataset of {len(file_list)} files matching "{fn_match_pattern}" (can take a while with lots of files)')
   #open_mfdataset when dropping x/y since both varname as dimname, which is not possible in xarray
   data_xr = xr.open_mfdataset(dir_data,
                               drop_variables=drop_variables, #necessary since dims/vars with equal names are not allowed by xarray, add again later and requested matroos to adjust netcdf format.
                               parallel=True, #speeds up the process
                               preprocess=preprocess,
-                              chunks={'time':1}).sel(time=slice(date_start_zero,date_end)); ds.close()
+                              chunks={'time':1}).sel(time=slice(date_start_zero,date_end)); data_xr.close()
   print('...done')
 
   #rename variables
@@ -76,58 +74,14 @@ def convert2FM(yr,input_dir):
 
   #check if requested times are available in selected files (in times_pd)
   if not date_start_zero in times_pd.index:
-      raise Exception(f'ERROR: all_tstart="{all_tstart}" not in selected files, timerange: "{times_pd.index[0]}" to "{times_pd.index[-1]}"')
+      raise Exception(f'ERROR: date_start_zero="{date_start_zero}" not in selected files, timerange: "{times_pd.index[0]}" to "{times_pd.index[-1]}"')
   if not date_end in times_pd.index:
-      raise Exception(f'ERROR: all_tstop="{all_tstop}" not in selected files, timerange: "{times_pd.index[0]}" to "{times_pd.index[-1]}"')
+      raise Exception(f'ERROR: date_end="{date_end}" not in selected files, timerange: "{times_pd.index[0]}" to "{times_pd.index[-1]}"')
 
   #get actual tstart/tstop strings from times_pd
   tstart_str = times_pd.index[0].strftime("%Y%m%d")
   tstop_str = times_pd.index[-1].strftime("%Y%m%d")
 
-  #TODO: check conversion implementation with hydro_tools\ERA5\ERA52DFM.py
-  # def get_unit(data_xr_var):
-  #     if 'units' in data_xr_var.attrs.keys():
-  #         unit = data_xr_var.attrs["units"]
-  #     else:
-  #         unit = '-'
-  #     return unit
-
-  #convert Kelvin to Celcius
-  # for varkey_sel in ['air_temperature','dew_point_temperature','d2m','t2m']: # 2 meter dewpoint temparature / 2 meter temperature
-  #     if varkey_sel in varkeys:
-  #         current_unit = get_unit(data_xr[varkey_sel])
-  #         new_unit = 'C'
-  #         print(f'converting {varkey_sel} unit from Kelvin to Celcius: [{current_unit}] to [{new_unit}]')
-  #         data_xr[varkey_sel].attrs['units'] = new_unit
-  #         data_xr[varkey_sel] = data_xr[varkey_sel] - 273.15
-  #convert fraction to percentage
-  # for varkey_sel in ['cloud_area_fraction','tcc']: #total cloud cover
-  #     if varkey_sel in varkeys:
-  #         current_unit = get_unit(data_xr[varkey_sel])
-  #         new_unit = '%' #unit is soms al %
-  #         print(f'converting {varkey_sel} unit from fraction to percentage: [{current_unit}] to [{new_unit}]')
-  #         data_xr[varkey_sel].attrs['units'] = new_unit
-  #         data_xr[varkey_sel] = data_xr[varkey_sel] * 100
-  #convert kg/m2/s to mm/day
-  # for varkey_sel in ['mer','mtpr']: #mean evaporation rate / mean total precipitation rate
-  #     if varkey_sel in varkeys:
-  #         current_unit = get_unit(data_xr[varkey_sel])
-  #         new_unit = 'mm/day'
-  #         print(f'converting {varkey_sel} unit from kg/m2/s to mm/day: [{current_unit}] to [{new_unit}]')
-  #         data_xr[varkey_sel].attrs['units'] = new_unit
-  #         data_xr[varkey_sel] = data_xr[varkey_sel] * 86400 # kg/m2/s to mm/day (assuming rho_water=1000)
-  # #convert J/m2 to W/m2
-  # for varkey_sel in ['ssr','strd']: #solar influx (surface_net_solar_radiation) / surface_thermal_radiation_downwards #TODO: 
-  #     if varkey_sel in varkeys:
-  #         current_unit = get_unit(data_xr[varkey_sel])
-  #         new_unit = 'W m**-2'
-  #         print(f'converting {varkey_sel} unit from J/m2 to W/m2: [{current_unit}] to [{new_unit}]')
-  #         data_xr[varkey_sel].attrs['units'] = new_unit
-  #         data_xr[varkey_sel] = data_xr[varkey_sel] / 3600 # 3600s/h #TODO: 1W = 1J/s, so does not make sense?
-  # #solar influx increase for beta=6%
-  # if 'ssr' in varkeys:
-  #     print('ssr (solar influx) increase for beta=6%')
-  #     data_xr['ssr'] = data_xr['ssr'] *.94
 
   #GTSM specific addition for longitude overlap
   if add_global_overlap: # assumes -180 to ~+179.75 (full global extent, but no overlap). Does not seem to mess up results for local models.
