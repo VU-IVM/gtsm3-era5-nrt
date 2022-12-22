@@ -94,10 +94,13 @@ def convert2FM(yr,input_dir):
       data_xr = xr.concat([data_xr,overlap_ltor,overlap_rtol],dim='longitude').sortby('longitude')
 
   #GTSM specific addition for zerovalues during spinup
-  if zerostart:
-      field_zerostart = data_xr.isel(time=[0,0])*0 #two times first field, set values to 0
-      field_zerostart['time'] = [times_pd.index[0]-dt.timedelta(days=2),times_pd.index[0]-dt.timedelta(days=1)] #TODO: is one zero field not enough? (is replacing first field not also ok? (results in 1hr transition period)
-      data_xr = xr.concat([field_zerostart,data_xr],dim='time')#.sortby('time')
+  data_xr = data_xr.where(data_xr.time >= np.datetime64(date_start_spinup), 0) # values to zero for initalization SLR
+  bool = (data_xr.time > np.datetime64(date_start_transition)) & (data_xr.time < np.datetime64(date_start_spinup)) # select transition period
+  data_xr = data_xr.where(~bool, drop=True) # drop times for transition period
+  
+      #field_zerostart = data_xr.isel(time=[0,0])*0 #two times first field, set values to 0
+#      field_zerostart['time'] = [times_pd.index[0]-dt.timedelta(days=2),times_pd.index[0]-dt.timedelta(days=1)] #TODO: is one zero field not enough? (is replacing first field not also ok? (results in 1hr transition period)
+#      data_xr = xr.concat([field_zerostart,data_xr],dim='time')#.sortby('time')
 
   encoding = {}
   #encoding['time'] = {'units': 'hours since 1900-01-01 00:00:00'} #TODO: maybe add different reftime?
