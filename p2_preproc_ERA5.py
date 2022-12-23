@@ -81,8 +81,12 @@ def convert2FM(yr,input_dir):
   #get actual tstart/tstop strings from times_pd
   tstart_str = times_pd.index[0].strftime("%Y%m%d")
   tstop_str = times_pd.index[-1].strftime("%Y%m%d")
-
-
+  
+  convert_360to180 = (data_xr['longitude'].to_numpy()>180).any()
+  if convert_360to180: #TODO: make more flexible for models that eg pass -180/+180 crossing (add overlap at lon edges).
+    data_xr.coords['longitude'] = (data_xr.coords['longitude'] + 180) % 360 - 180
+    data_xr = data_xr.sortby(data_xr['longitude'])
+  
   #GTSM specific addition for longitude overlap
   if add_global_overlap: # assumes -180 to ~+179.75 (full global extent, but no overlap). Does not seem to mess up results for local models.
       if len(data_xr.longitude.values) != len(np.unique(data_xr.longitude.values%360)):
