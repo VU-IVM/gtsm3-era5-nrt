@@ -110,13 +110,47 @@ def convert2FM(yr,input_dir):
   #encoding['time'] = {'units': 'hours since 1900-01-01 00:00:00'} #TODO: maybe add different reftime?
   #for varkey in list(data_xr.data_vars.keys()):
   #    encoding[varkey] = {'scale_factor':0.01,'add_offset':0} #TODO: maybe add, but not necessary since xarray uses encoding from first file and that is already quite efficient.
-
-  #write to netcdf file
-  
-  print('writing file')
-  
+  # dict
+   # create variables 'dictionary' for filename pattern, variable name in ncin, variable name in ncout  
+  var_dict = {
+    "u10" : {
+      "standard_name" : "eastward_wind",
+      "long_name" : "10 metre U wind component",
+      "units" : "m s**-1",
+      "scale_factor" : float(0.01),
+      "offset" : float(0)},
+    "v10" : {
+      "standard_name" : "northward_wind",
+      "long_name" : "10 metre V wind component",
+      "units" : "m s**-1",
+      "scale_factor" : float(0.01),
+      "offset" : float(0)},
+    "msl" : {
+      "standard_name" : "air_pressure",
+      "long_name" : "Mean sea level pressure",
+      "units" : "Pa",
+      "scale_factor" : float(1),
+      "offset" : float(100000)}}
+  coor_dict = {
+    "latitude" : {
+      "standard_name" : "latitude",
+      "long_name" : "latitude",
+      "units" : "degrees north"},
+    "longitude" : {
+      "standard_name" : "longitude",
+      "long_name" : "longitude",
+      "units" : "degrees_east"}}
+  # write output
   for varname in varkey_list:
     data_xr_var = data_xr[varname]
+    ds_var.attrs['standard_name'] = var_dict[varname]['standard_name']
+    ds_var.attrs['long_name'] = var_dict[varname]['long_name']
+    ds_var.attrs['units'] = var_dict[varname]['units']
+    ds_var.attrs['coordinates'] = 'longitude latitude'
+    for coor in coor_dict.keys():
+      ds_var_merged[coor].attrs['standard_name'] = coor_dict[coor]['standard_name']
+      ds_var_merged[coor].attrs['units'] = coor_dict[coor]['units']
+      ds_var_merged[coor].attrs['long_name'] = coor_dict[coor]['long_name']
     filename = f'ERA5_CDS_atm_{varname}_{dt.datetime.strftime(date_start_zero, "%Y-%m-%d")}_{dt.datetime.strftime(date_end, "%Y-%m-%d")}.nc'
     file_out = os.path.join(dir_output, filename)
     data_xr_var.to_netcdf(file_out, encoding=encoding)
