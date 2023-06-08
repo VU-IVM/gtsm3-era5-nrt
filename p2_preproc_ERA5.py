@@ -22,7 +22,7 @@ def convert2FM(yr,input_dir):
   varkey_list = ['msl','u10','v10'] #charnock, mean_sea_level_pressure, 10m_u_component_of_neutral_wind, 10m_v_component_of_neutral_wind
 
   # Create output folder
-  dir_output = input_dir.replace('meteo_ERA5','meteo_ERA5_fm_G')
+  dir_output = input_dir.replace('meteo_ERA5','meteo_ERA5_fm')
   if not os.path.exists(dir_output):
       os.makedirs(dir_output)
 
@@ -54,12 +54,13 @@ def convert2FM(yr,input_dir):
   #check if requested times are available in selected files (in times_pd)
   if not date_start_spinup in times_pd.index:
       raise Exception(f'ERROR: date_start_spinup="{date_start_spinup}" not in selected files, timerange: "{times_pd.index[0]}" to "{times_pd.index[-1]}"')
-  if not date_end in times_pd.index:
-      raise Exception(f'ERROR: date_end="{date_end}" not in selected files, timerange: "{times_pd.index[0]}" to "{times_pd.index[-1]}"')
+  # if not date_end in times_pd.index: #TODO: revert this comment
+  #     raise Exception(f'ERROR: date_end="{date_end}" not in selected files, timerange: "{times_pd.index[0]}" to "{times_pd.index[-1]}"')
 
   convert_360to180 = (data_xr['longitude'].to_numpy()>180).any()
   if convert_360to180: #TODO: make more flexible for models that eg pass -180/+180 crossing (add overlap at lon edges).
-    data_xr.coords['longitude'] = (data_xr.coords['longitude'] + 180) % 360 - 180
+    lon_newvar = (data_xr.coords['longitude'] + 180) % 360 - 180
+    data_xr.coords['longitude'] = lon_newvar.assign_attrs(data_xr['longitude'].attrs) #this re-adds original attrs
     data_xr = data_xr.sortby(data_xr['longitude'])
   
   #GTSM specific addition for longitude overlap
@@ -73,55 +74,39 @@ def convert2FM(yr,input_dir):
       data_xr = xr.concat([data_xr,overlap_ltor,overlap_rtol],dim='longitude').sortby('longitude')
 
   #GTSM specific addition for zerovalues during spinup
+  #TODO: doing this drops all encoding from variables, causing them to be converted into floats. Also makes sense since 0 pressure does not fit into int16 range as defined by scalefac and offset
+  #'scale_factor': 0.17408786412952254, 'add_offset': 99637.53795606793
+  #99637.53795606793 - 0.17408786412952254*32768
+  #99637.53795606793 + 0.17408786412952254*32767
   if zerostart:
     field_zerostart = data_xr.isel(time=[0,0])*0 #two times first field, set values to 0
     field_zerostart['time'] = [times_pd.index[0]-dt.timedelta(days=2),times_pd.index[0]-dt.timedelta(days=1)] #TODO: is one zero field not enough? (is replacing first field not also ok? (results in 1hr transition period)
-    data_xr = xr.concat([field_zerostart,data_xr],dim='time')#.sortby('time')
+    data_xr = xr.concat([field_zerostart,data_xr],dim='time',combine_attrs='no_conflicts') #combine_attrs argument prevents attrs from being dropped
 
-  # create variables 'dictionary' for filename pattern, variable name in ncin, variable name in ncout  
+  # create variables 'dictionary' with attrs
   var_dict = {
     "u10" : {
-      "standard_name" : "eastward_wind",
-      "long_name" : "10 metre U wind component",
-      "units" : "m s**-1",
-      "scale_factor" : float(0.01),
+      "standard_name" : "eastward_wind", #TODO: missing from ERA5 dataset
+      "scale_factor" : float(0.01), #TODO: scale_factor and add_offset (not offset) are not written to file, should also be written towards encoding instead of attrs.
       "offset" : float(0)},
     "v10" : {
-      "standard_name" : "northward_wind",
-      "long_name" : "10 metre V wind component",
-      "units" : "m s**-1",
+      "standard_name" : "northward_wind",#TODO: missing from ERA5 dataset
       "scale_factor" : float(0.01),
       "offset" : float(0)},
     "msl" : {
-      "standard_name" : "air_pressure",
-      "long_name" : "Mean sea level pressure",
-      "units" : "Pa",
+      "standard_name" : "air_pressure", #TODO: is air_pressure_at_mean_sea_level in ERA5 dataset
       "scale_factor" : float(1),
       "offset" : float(100000)}}
-  coor_dict = {
-    "latitude" : {
-      "standard_name" : "latitude",
-      "long_name" : "latitude",
-      "units" : "degrees north"},
-    "longitude" : {
-      "standard_name" : "longitude",
-      "long_name" : "longitude",
-      "units" : "degrees_east"}}
   #write to netcdf file
   print('writing file')
   for varname in varkey_list:
     data_xr_var = data_xr[varname]
-    data_xr_var.attrs['standard_name'] = var_dict[varname]['standard_name']
-    data_xr_var.attrs['long_name'] = var_dict[varname]['long_name']
-    data_xr_var.attrs['units'] = var_dict[varname]['units']
-    #data_xr_var.attrs['coordinates'] = 'longitude latitude'
-    for coor in coor_dict.keys():
-      data_xr_var[coor].attrs['standard_name'] = coor_dict[coor]['standard_name']
-      data_xr_var[coor].attrs['units'] = coor_dict[coor]['units']
-      data_xr_var[coor].attrs['long_name'] = coor_dict[coor]['long_name']
+    data_xr_var.attrs['standard_name'] = var_dict[varname]['standard_name'] #TODO: original long_name and units attrs are now conserved, so do not need to be enforced
+    data_xr_var.attrs['coordinates'] = 'longitude latitude'
+    #data_xr_var.encoding['zlib'] = True #TODO: way smaller, but also way slower file writing, also with file reading? >> rescale+int16 is better?
     filename = f'ERA5_CDS_atm_{varname}_{dt.datetime.strftime(date_start_zero, "%Y-%m-%d")}_{dt.datetime.strftime(date_end, "%Y-%m-%d")}.nc'
     file_out = os.path.join(dir_output, filename)
-    data_xr_var.to_netcdf(file_out, encoding={})
+    data_xr_var.to_netcdf(file_out)
 
 
 if __name__ == "__main__":
@@ -129,7 +114,7 @@ if __name__ == "__main__":
     yr=os.sys.argv[1]
     input_dir=os.sys.argv[2]        
   else:
-    #raise RuntimeError('No arguments were provided\nFirst argument should indicate year as "yyyy".\n Second argument for input_dir')
+    #raise RuntimeError('No arguments were provided\nFirst argument should indicate year as "yyyy".\n Second argument for input_dir') #TODO: re-enable this error again
     yr = '1960'
     input_dir = './TEMP_meteo_ERA5'
   convert2FM(yr,input_dir)
