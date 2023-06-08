@@ -32,7 +32,7 @@ The Python scripts submitted by the bash script are used to download and preproc
     - compute residual water levels and annual means
     - plotting results (min, max, mean) on global map
   
-To be able to run the Python script you need to install conda and create an virtual environment using the env.yml file (```conda create --name gtsm3-era5-nrt --file env.ym```). This installs the required packages, such as xarray, netCDF4, cartopy, etc. 
+To be able to run the Python script you need to install conda and create an virtual environment using the environment.yml file (```conda env create --file environment.yml```). This installs the required packages, such as xarray, netCDF4, cartopy, etc. 
 
 ## Contact
 Sanne Muis - sanne.muis@deltares.nl

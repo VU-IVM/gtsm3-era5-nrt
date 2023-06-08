@@ -143,14 +143,14 @@ def convert2FM(yr,input_dir):
   # write output
   for varname in varkey_list:
     data_xr_var = data_xr[varname]
-    ds_var.attrs['standard_name'] = var_dict[varname]['standard_name']
-    ds_var.attrs['long_name'] = var_dict[varname]['long_name']
-    ds_var.attrs['units'] = var_dict[varname]['units']
-    ds_var.attrs['coordinates'] = 'longitude latitude'
+    data_xr_var.attrs['standard_name'] = var_dict[varname]['standard_name']
+    data_xr_var.attrs['long_name'] = var_dict[varname]['long_name']
+    data_xr_var.attrs['units'] = var_dict[varname]['units']
+    data_xr_var.attrs['coordinates'] = 'longitude latitude'
     for coor in coor_dict.keys():
-      ds_var_merged[coor].attrs['standard_name'] = coor_dict[coor]['standard_name']
-      ds_var_merged[coor].attrs['units'] = coor_dict[coor]['units']
-      ds_var_merged[coor].attrs['long_name'] = coor_dict[coor]['long_name']
+      data_xr_var[coor].attrs['standard_name'] = coor_dict[coor]['standard_name']
+      data_xr_var[coor].attrs['units'] = coor_dict[coor]['units']
+      data_xr_var[coor].attrs['long_name'] = coor_dict[coor]['long_name']
     filename = f'ERA5_CDS_atm_{varname}_{dt.datetime.strftime(date_start_zero, "%Y-%m-%d")}_{dt.datetime.strftime(date_end, "%Y-%m-%d")}.nc'
     file_out = os.path.join(dir_output, filename)
     data_xr_var.to_netcdf(file_out, encoding=encoding)

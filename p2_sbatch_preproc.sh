@@ -4,7 +4,6 @@
 #SBATCH -p fat
 #SBATCH --job-name=preproc
 #SBATCH --mail-type=BEGIN,FAIL,END
-#SBATCH --mail-user=natalia.aleksandrova@deltares.nl
 
 set -e 
 

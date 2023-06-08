@@ -140,7 +140,6 @@ dependencies:
   - mysql-libs=8.0.30=h28c427c_0
   - nco=5.1.0=h81bb2a3_2
   - ncurses=6.3=h27087fc_1
-  - netcdf-fortran=4.6.0=nompi_hc402ea5_100
   - netcdf4=1.6.0=nompi_py310h9fd08d4_101
   - nspr=4.32=h9c3ff4c_1
   - nss=3.78=h2350873_0
@@ -228,4 +227,3 @@ dependencies:
   - zict=2.2.0=pyhd8ed1ab_0
   - zlib=1.2.12=h166bdaf_2
   - zstd=1.5.2=h6239696_4
-prefix: /home/muiss/miniconda3/envs/gtsm3-era5-nrt-slm

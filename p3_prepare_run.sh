@@ -4,7 +4,6 @@
 #SBATCH -p thin
 #SBATCH --job-name=prepare
 #SBATCH --mail-type=BEGIN,FAIL,END
-#SBATCH --mail-user=natalia.aleksandrova@deltares.nl
 
 set -e 
 
