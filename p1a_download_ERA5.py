@@ -44,6 +44,6 @@ if __name__ == "__main__":
         outdir=os.sys.argv[2]
     else:
         #tstart = '1960-01'
-        #outdir = './TEMP_meteo'
+        #outdir = './TEMP_meteo_ERA5'
         raise RuntimeError('No arguments were provided\nFirst argument should indicate startdate as "yyyy-mm".\n Second argument for outdir. Script will download monthly files per day')
     download_era5(tstart,outdir)
