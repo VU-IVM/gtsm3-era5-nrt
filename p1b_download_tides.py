@@ -8,7 +8,7 @@ def download_tides(tstart, outdir):
   import zipfile
   
   # Get current date, for month and year information
-  tdate = datetime.strptime(tstart,"%d-%m-%Y").date()   
+  tdate = datetime.strptime(tstart,"%Y-%m-%d").date()   
   # Monthly download
   print ("######### GTSM-tides from CDS  #########")
   print ('get data from ', tdate)
