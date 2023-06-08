@@ -34,7 +34,7 @@ def download_tides(tstart, outdir):
     
 if __name__ == "__main__":
     # read input arguments
-    if len(os.sys.argv)>0:
+    if len(os.sys.argv)>1:
       tstart=os.sys.argv[1]
       outdir=os.sys.argv[2]        
     else:

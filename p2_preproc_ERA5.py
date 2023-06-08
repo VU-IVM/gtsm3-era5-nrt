@@ -177,7 +177,7 @@ def convert2FM(yr,input_dir):
 
 if __name__ == "__main__":
   import os
-  if len(os.sys.argv)>0:
+  if len(os.sys.argv)>1:
     yr=os.sys.argv[1]
     input_dir=os.sys.argv[2]        
   else:

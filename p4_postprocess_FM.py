@@ -226,7 +226,7 @@ if __name__ == "__main__":
   import os
   # read input arguments
   print(len(os.sys.argv))
-  if len(os.sys.argv)>0:
+  if len(os.sys.argv)>1:
     year = int(sys.argv[1])
     mnth = int(sys.argv[2])
     scenario = sys.argv[3]

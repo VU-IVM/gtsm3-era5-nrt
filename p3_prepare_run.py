@@ -93,7 +93,7 @@ def replace_all(template_name,out_name,key_values,special_char):
 
 if __name__ == "__main__":
   import os
-  if len(os.sys.argv)>0:
+  if len(os.sys.argv)>1:
     yr=os.sys.argv[1]
     base_dir=os.sys.argv[2]        
   else:
