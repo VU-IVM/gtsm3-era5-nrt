@@ -13,14 +13,18 @@ def download_era5(tstart,outdir):
     print ("######### ERA-5 from CDS  #########")
     print ('get data from ', tstart,'(1 Day)')
     print ("################################")
+    os.makedirs(outdir,exist_ok=True)
     # I/O - download the data
     for day in dayarray:
         print(day)
         tday = dt.datetime(day=int(day),month=tstart.month,year=tstart.year).date()
         targetfile = os.path.join(outdir,"ERA5_CDS_atm_%s.nc" %(tday))
+        if os.path.exists(targetfile):
+            print('already downloaded')
+            pass
         if os.path.isfile(targetfile)==False: 
             c = cdsapi.Client()
-            c.retrieve('reanalysis-era5-single-levels', # TODO: 'reanalysis-era5-single-levels-preliminary-back-extension',
+            c.retrieve('reanalysis-era5-single-levels',
                 {'product_type':'reanalysis',
                 'format':'netcdf',
                 'variable':['10m_u_component_of_wind','10m_v_component_of_wind','mean_sea_level_pressure'],
@@ -39,8 +43,7 @@ if __name__ == "__main__":
         tstart=os.sys.argv[1]
         outdir=os.sys.argv[2]
     else:
-        # tstart = '1940-01'
-        # outdir = './TEMP_meteo'
-        # os.makedirs(outdir,exist_ok=True)
+        #tstart = '1960-01'
+        #outdir = './TEMP_meteo'
         raise RuntimeError('No arguments were provided\nFirst argument should indicate startdate as "yyyy-mm".\n Second argument for outdir. Script will download monthly files per day')
     download_era5(tstart,outdir)
