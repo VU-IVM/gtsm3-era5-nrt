@@ -6,7 +6,7 @@ import cdsapi
 
 def download_era5(tstart,outdir):
     # find times for monthly downlods
-    tstart = dt.datetime.strptime(tstart, "%Y-%m-%d").date()
+    tstart = dt.datetime.strptime(tstart, "%Y-%m").date()
     lastday = calendar.monthrange(tstart.year,tstart.month)[1]
     dayarray = ["{:02}".format(iday) for iday in range(1,lastday+1)]     
     # daily download
@@ -39,8 +39,8 @@ if __name__ == "__main__":
         tstart=os.sys.argv[1]
         outdir=os.sys.argv[2]
     else:
-        # tstart = '1940-01-01'
+        # tstart = '1940-01'
         # outdir = './TEMP_meteo'
         # os.makedirs(outdir,exist_ok=True)
-        raise RuntimeError('No arguments were provided\nFirst argument should indicate startdate as "%Y-%m-%d".\n Second argument for outdir. Script will download monthly files per day')
+        raise RuntimeError('No arguments were provided\nFirst argument should indicate startdate as "yyyy-mm".\n Second argument for outdir. Script will download monthly files per day')
     download_era5(tstart,outdir)
