@@ -1,14 +1,13 @@
 #!/usr/bin/env python
+import os
+import datetime as dt
+import cdsapi
+import zipfile
 
 def download_tides(tstart, outdir):
-  import os
-  import os.path
-  from datetime import datetime
-  import cdsapi
-  import zipfile
   
   # Get current date, for month and year information
-  tdate = datetime.strptime(tstart,"%Y-%m").date()   
+  tdate = dt.datetime.strptime(tstart,"%Y-%m").date()   
   # Monthly download
   print ("######### GTSM-tides from CDS  #########")
   print ('get data from ', tdate)
@@ -35,8 +34,6 @@ def download_tides(tstart, outdir):
     
 if __name__ == "__main__":
     # read input arguments
-    import os
-    import datetime
     if len(os.sys.argv)>0:
       tstart=os.sys.argv[1]
       outdir=os.sys.argv[2]        
