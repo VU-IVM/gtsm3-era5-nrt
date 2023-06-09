@@ -15,7 +15,7 @@ scenario=era5
 for yr in {2019..2021..1}; do
   for mnth in {1..12..1}; do
     (
-      conda run -n gtsm-era5-nrt-slm python p4_postprocess_FM.py $yr $mnth $scenario $pdir
+      conda run -n gtsm3-era5-nrt-slm python p4_postprocess_FM.py $yr $mnth $scenario $pdir
       ) &
   done
 done

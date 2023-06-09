@@ -1,4 +1,4 @@
-name: gtsm-era5-nrt-slm
+name: gtsm3-era5-nrt-slm
 channels:
   - conda-forge
   - defaults

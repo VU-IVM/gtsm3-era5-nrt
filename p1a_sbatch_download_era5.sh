@@ -13,7 +13,7 @@ for i in {1979..1979..1}; do
   (
     tstart=$(printf -- '%04d-%02d' "$i" "$j" )
     echo $tstart $pdir
-    conda run -n gtsm-era5-nrt-slm python p1a_download_ERA5.py $tstart $pdir
+    conda run -n gtsm3-era5-nrt-slm python p1a_download_ERA5.py $tstart $pdir
   ) &
   done
 done

@@ -18,7 +18,7 @@ base_dir="/gpfs/work1/0/einf3499/"
 for yr in {1960..1978..1}; do
 (
   echo $yr $base_dir
-  conda run -n gtsm-era5-nrt-slm python p3_prepare_run.py $yr $base_dir
+  conda run -n gtsm3-era5-nrt-slm python p3_prepare_run.py $yr $base_dir
 ) &
 done
 wait
