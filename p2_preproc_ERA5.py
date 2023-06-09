@@ -89,23 +89,30 @@ def convert2FM(yr):
     var_dict = {
       "u10" : {
         "standard_name" : "eastward_wind", #TODO: missing from ERA5 dataset >> couple via quantity/varname in extfile
-        "scale_factor" : float(0.01), #TODO: scale_factor and add_offset (not offset) are not written to file, should also be written towards encoding instead of attrs. Also dtype and _FillValue encoding should be (over)written
-        "offset" : float(0)},
+        "scale_factor" : float(0.01), #TODO: scale_factor and add_offset are not written to file, should also be written towards encoding instead of attrs. Also dtype and _FillValue encoding should be (over)written
+        "add_offset" : float(0)},
       "v10" : {
         "standard_name" : "northward_wind",#TODO: missing from ERA5 dataset
         "scale_factor" : float(0.01),
-        "offset" : float(0)},
+        "add_offset" : float(0)},
       "msl" : {
         "standard_name" : "air_pressure", #TODO: is air_pressure_at_mean_sea_level in ERA5 dataset
         "scale_factor" : float(1),
-        "offset" : float(100000)}} #TODO: zero-fields will not fit in the resulting int16 range, so dtype=int16 is not possible
+        "add_offset" : float(100000)}} #TODO: zero-fields will not fit in the resulting int16 range, so dtype=int16 is not possible
     #write to netcdf file
     print('writing file')
-    for varname in varkey_list:
+    for varname in varkey_list[:0]: #TODO:revert back to entire list
         data_xr_var = data_xr[varname]
         data_xr_var.attrs['standard_name'] = var_dict[varname]['standard_name'] #TODO: original long_name and units attrs are now conserved, so do not need to be enforced
         data_xr_var.attrs['coordinates'] = 'longitude latitude'
-        #data_xr_var.encoding['zlib'] = True #TODO: way smaller, but also way slower file writing, also with file reading? >> rescale+int16 is better?
+        #TODO: reference speed/disksize for one float32 variable: 2min, 4.6GB
+        #data_xr_var.encoding['zlib'] = True #TODO: way smaller, but also way slower file writing (with complevel>0), also with file reading?
+        #data_xr_var.encoding['compression'] = "gzip"
+        # if varname in ['u10','v10']: # speed/disksize for one int16 variable: 1min, 2.3GB
+        #     data_xr_var.encoding['scale_factor'] = 0.01 # TODO: scale_factor=0.01 this results in an accuracy of 1cm/s in x an y direction. Rounding the separate components might slightly shift the wind direction
+        #     data_xr_var.encoding['add_offset'] = 0
+        #     data_xr_var.encoding['dtype'] = 'int16'
+        #     data_xr_var.encoding['_FillValue'] = -32767
         filename = f'ERA5_CDS_atm_{varname}_{dt.datetime.strftime(date_start_zero, "%Y-%m-%d")}_{dt.datetime.strftime(date_end, "%Y-%m-%d")}.nc'
         file_out = os.path.join(dir_output, filename)
         data_xr_var.to_netcdf(file_out)
@@ -115,6 +122,9 @@ if __name__ == "__main__":
     if len(os.sys.argv)>1:
         yr=os.sys.argv[1]
     else:
-        # yr = '1960'
-        raise RuntimeError('No arguments were provided\nFirst argument should indicate year as "yyyy".')
+        yr = '1960'
+        #raise RuntimeError('No arguments were provided\nFirst argument should indicate year as "yyyy".')
+    tstart = dt.datetime.now()
     convert2FM(yr)
+    print('time passed:',dt.datetime.now()-tstart)
+    
