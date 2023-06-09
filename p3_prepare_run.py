@@ -18,7 +18,7 @@ def prepare_GTSM_monthly_runs(yr):
     meteo_slr_dir = path_dict['meteo_SLR']
     meteo_msl_dir = path_dict['meteo_msl']
     modeltemplate_dir = path_dict['modeltemplate']
-    modelrun_dir = path_dict['modelrun']
+    modelruns_dir = path_dict['modelruns']
     
     # calculate start and end times based on chosen reference time
     tdate = dt.datetime.strptime(yr,'%Y').date()
@@ -42,7 +42,7 @@ def prepare_GTSM_monthly_runs(yr):
     
     templatedir=os.path.join(modeltemplate_dir,'model_input_template')
     modelfilesdir=os.path.join(modeltemplate_dir,'model_files')
-    run_dir = os.path.join(modelrun_dir,f'model_input_ERA5_{yr}')
+    run_dir = os.path.join(modelruns_dir,f'model_input_ERA5_{yr}')
     
     # copy model files and template if not exists
     if os.path.exists(run_dir):
