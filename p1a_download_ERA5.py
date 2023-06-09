@@ -12,7 +12,7 @@ def download_era5(tstart,outdir):
     lastday = calendar.monthrange(tstart.year,tstart.month)[1]
     dayarray = ["{:02}".format(iday) for iday in range(1,lastday+1)]     
     # daily download
-    print ("######### ERA-5 from CDS  #########")
+    print ("######### ERA-5 from CDS #########")
     os.makedirs(outdir,exist_ok=True)
     # I/O - download the data
     for day in dayarray:
