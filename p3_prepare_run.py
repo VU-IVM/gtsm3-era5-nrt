@@ -48,39 +48,39 @@ def prepare_GTSM_monthly_runs(yr,base_dir):
     copy_tree(modelfilesdir, run_dir)
     
     # change templates
-    keywords_MDU={'REFDATE':refdate.strftime("%Y%m%d"),'TSTART':str(tstart),'TSTOP':str(tstop)}
-    replace_all(os.path.join(run_dir,"gtsm_fine.mdu.template"), os.path.join(run_dir,"gtsm_fine.mdu"),keywords_MDU,'%')
+    keywords_MDU={'%REFDATE%':refdate.strftime("%Y%m%d"),'%TSTART%':str(tstart),'%TSTOP%':str(tstop)}
+    replace_all(os.path.join(run_dir,"gtsm_fine.mdu.template"), os.path.join(run_dir,"gtsm_fine.mdu"),keywords_MDU)
     
-    keywords_EXT={'METEOFILE_GLOB_U':meteofile_u,'METEOFILE_GLOB_V':meteofile_v,'METEOFILE_GLOB_P':meteofile_p, 'METEOFILE_MSLCORR':MSLcorrfile,'METEOFILE_SLR':SLRfile}
-    replace_all(os.path.join(templatedir,'gtsm_fine.ext.template'),os.path.join(run_dir,"gtsm_fine.ext"),keywords_EXT,'%') 
+    keywords_EXT={'%METEOFILE_GLOB_U%':meteofile_u,'%METEOFILE_GLOB_V%':meteofile_v,'%METEOFILE_GLOB_P%':meteofile_p, '%METEOFILE_MSLCORR%':MSLcorrfile,'%METEOFILE_SLR%':SLRfile}
+    replace_all(os.path.join(templatedir,'gtsm_fine.ext.template'),os.path.join(run_dir,"gtsm_fine.ext"),keywords_EXT) 
     
     shfile = 'sbatch_snellius_delft3dfm2022.04_1x128cores_yearly.sh'
     workfolder=f"ERA5_{tdate.year}"
-    keywords_QSUB={'JOBNAME':workfolder}
-    replace_all(os.path.join(templatedir,shfile),os.path.join(run_dir,'%s'%(shfile)),keywords_QSUB,'%')
+    keywords_QSUB={'%JOBNAME%':workfolder}
+    replace_all(os.path.join(templatedir,shfile),os.path.join(run_dir,'%s'%(shfile)),keywords_QSUB)
     
     os.system("cd "+run_dir+"; chmod -R 777 *")
 
 
-def replace_all(template_name,out_name,key_values,special_char):
-    '''replace all occurrances of key between special_chars with the values '''
+def replace_all(template_name,out_name,replace_dict):
+    '''replace all occurrances of replace_dict keys with its values'''
     f_in  = open(template_name,'r')
     f_out = open(out_name,'w')
-    for line in f_in.readlines():
-        if( line.count(special_char)==2 ):
-            print(">>>"+line)
-            left_index=line.find(special_char)
-            right_index=line.rfind(special_char)
-            key=line[left_index+1:right_index]
-            key_with_chars=special_char+key+special_char
-            if key in key_values:
-                value=key_values[key]
-                line=line.replace(key_with_chars,value)
-            else:
-                raise Exception("Could not find key:"+key)
-        f_out.write(line)
+    data = f_in.read() # string of all file content
+    for i, j in replace_dict.items(): #replace per key
+        data = data.replace(i,j)
+    f_out.write(data)
     f_in.close()
     f_out.close()
+    
+    #check for missed replacements
+    msg = []
+    if '%' in data:
+        for line in data.split('\n'):
+            if '%' in line:
+                msg.append(line)
+        msg_newlines = '\n'.join(msg)
+        raise Exception(f'Not all keys replaced:\n{msg_newlines}')
 
 
 if __name__ == "__main__":
@@ -88,5 +88,12 @@ if __name__ == "__main__":
         yr=os.sys.argv[1]
         base_dir=os.sys.argv[2]        
     else:
+        # base_dir = '.'
+        # run_dir= os.path.join(base_dir, "template_files")
+        # refdate = dt.datetime(2011,1,1)
+        # tstart = '0'
+        # tstop = '100'
+        # keywords_MDU={'%REFDATE%':refdate.strftime("%Y%m%d"),'%TSTART%':str(tstart),'%TSTOP%':str(tstop)}
+        # replace_all(os.path.join(run_dir,"gtsm_model.mdu.template"), os.path.join(run_dir,"gtsm_model.mdu"),keywords_MDU)   
         raise RuntimeError('No arguments were provided')
     prepare_GTSM_monthly_runs(yr,base_dir)
