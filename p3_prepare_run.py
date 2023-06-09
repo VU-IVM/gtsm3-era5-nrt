@@ -43,15 +43,12 @@ def prepare_GTSM_monthly_runs(yr):
     templatedir=os.path.join(modeltemplate_dir,'model_input_template')
     modelfilesdir=os.path.join(modeltemplate_dir,'model_files')
     run_dir = os.path.join(modelrun_dir,f'model_input_ERA5_{yr}')
-    # os.makedirs(run_dir, exist_ok=True)
     
-    # copy model files and template
-    try:
-        os.stat(run_dir)
+    # copy model files and template if not exists
+    if os.path.exists(run_dir):
         raise Exception("Directory already exists ", run_dir)
-    except OSError:
-        print("copying ",templatedir," to ",run_dir)
-        shutil.copytree(templatedir,run_dir,symlinks=False,ignore=None)
+    print("copying ",templatedir," to ",run_dir)
+    shutil.copytree(templatedir,run_dir,symlinks=False,ignore=None)
     copy_tree(modelfilesdir, run_dir)
     
     # change templates

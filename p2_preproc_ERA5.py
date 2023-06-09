@@ -88,7 +88,7 @@ def convert2FM(yr):
     # create variables 'dictionary' with attrs
     var_dict = {
       "u10" : {
-        "standard_name" : "eastward_wind", #TODO: missing from ERA5 dataset
+        "standard_name" : "eastward_wind", #TODO: missing from ERA5 dataset >> couple via quantity/varname in extfile
         "scale_factor" : float(0.01), #TODO: scale_factor and add_offset (not offset) are not written to file, should also be written towards encoding instead of attrs. Also dtype and _FillValue encoding should be (over)written
         "offset" : float(0)},
       "v10" : {
