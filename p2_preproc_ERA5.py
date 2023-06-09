@@ -64,7 +64,7 @@ def convert2FM(yr):
         lon_newvar = (data_xr.coords['longitude'] + 180) % 360 - 180
         data_xr.coords['longitude'] = lon_newvar.assign_attrs(data_xr['longitude'].attrs) #this re-adds original attrs
         data_xr = data_xr.sortby(data_xr['longitude'])
-      
+    
     #GTSM specific addition for longitude overlap
     if add_global_overlap: # assumes -180 to ~+179.75 (full global extent, but no overlap). Does not seem to mess up results for local models.
         if len(data_xr.longitude.values) != len(np.unique(data_xr.longitude.values%360)):
@@ -98,7 +98,7 @@ def convert2FM(yr):
       "msl" : {
         "standard_name" : "air_pressure", #TODO: is air_pressure_at_mean_sea_level in ERA5 dataset
         "scale_factor" : float(1),
-        "offset" : float(100000)}}
+        "offset" : float(100000)}} #TODO: zero-fields will not fit in the resulting int16 range, so dtype=int16 is not possible
     #write to netcdf file
     print('writing file')
     for varname in varkey_list:
