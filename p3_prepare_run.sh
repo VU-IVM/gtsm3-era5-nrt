@@ -14,7 +14,6 @@ module load 2021
 # Folder paths
 base_dir="/gpfs/work1/0/einf3499/"
 
-
 for yr in {1960..1978..1}; do
 (
   echo $yr $base_dir

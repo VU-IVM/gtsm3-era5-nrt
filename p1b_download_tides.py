@@ -6,9 +6,9 @@ import cdsapi
 import zipfile
 
 
-def download_tides(tstart, outdir):
+def download_tides(yr, mnth, outdir):
     # Get current date, for month and year information
-    tdate = dt.datetime.strptime(tstart,"%Y-%m").date()   
+    tdate = dt.datetime(yr,mnth,1).date()
     # Monthly download
     print ("######### GTSM-tides from CDS  #########")
     print ('get data from ', tdate)
@@ -37,8 +37,9 @@ def download_tides(tstart, outdir):
 if __name__ == "__main__":
     # read input arguments
     if len(os.sys.argv)>1:
-        tstart=os.sys.argv[1]
-        outdir=os.sys.argv[2]        
+        yr = os.sys.argv[1]
+        mnth = os.sys.argv[2]
+        outdir = os.sys.argv[3]
     else:
-        raise RuntimeError('No arguments were provided\nFirst argument should indicate startdate as "yyyy-mm".\n Second argument for outdir. Script will download monthly files per day')
-    download_tides(tstart,outdir)
+        raise RuntimeError('No arguments were provided\nFirst argument should indicate year. Second argument should indicate month. Third argument for outdir. Script will download monthly files per day')
+    download_tides(yr,mnth,outdir)
