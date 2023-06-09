@@ -13,7 +13,7 @@ from distutils.dir_util import copy_tree
 from path_dict import path_dict
 
 
-def prepare_GTSM_monthly_runs(yr):
+def prepare_GTSM_yearly_runs(yr):
     meteo_fm_dir = path_dict['meteo_fm']
     meteo_slr_dir = path_dict['meteo_SLR']
     meteo_msl_dir = path_dict['meteo_msl']
@@ -21,9 +21,8 @@ def prepare_GTSM_monthly_runs(yr):
     modelruns_dir = path_dict['modelruns']
     
     # calculate start and end times based on chosen reference time
-    tdate = dt.datetime.strptime(yr,'%Y').date()
-    date_start = dt.datetime(tdate.year,1,1)-dt.timedelta(days=17) # imposed 1 day zero, 1 day transition, 15 days spinup 
-    date_end = dt.datetime(tdate.year+1,1,1)
+    date_start = dt.datetime(yr,1,1)-dt.timedelta(days=17) # imposed 1 day zero, 1 day transition, 15 days spinup 
+    date_end = dt.datetime(yr+1,1,1)
     
     refdate = dt.datetime(1900,1,1)
     tstart = (date_start-refdate).total_seconds()
@@ -38,7 +37,7 @@ def prepare_GTSM_monthly_runs(yr):
     meteofile_p=os.path.join(meteo_fm_dir,f'ERA5_CDS_atm_msl_{dt.datetime.strftime(date_start, "%Y-%m-%d")}_{dt.datetime.strftime(date_end, "%Y-%m-%d")}.nc')
     
     SLRfile=os.path.join(meteo_slr_dir,"TotalSeaLevel_MapsSROCC_rcp85_Perc50_zero1986to2005_dflow_extrap.nc")  
-    MSLcorrfile=os.path.join(meteo_msl_dir, "ERAInterim_average_msl_neg_%s1215_%s0101.nc" %(int(tdate.year-1), int(tdate.year)+1)) # need to be updated
+    MSLcorrfile=os.path.join(meteo_msl_dir, "ERAInterim_average_msl_neg_%s1215_%s0101.nc" %(int(yr-1), int(yr)+1)) # need to be updated
     
     templatedir=os.path.join(modeltemplate_dir,'model_input_template')
     modelfilesdir=os.path.join(modeltemplate_dir,'model_files')
@@ -59,7 +58,7 @@ def prepare_GTSM_monthly_runs(yr):
     replace_all(os.path.join(templatedir,'gtsm_fine.ext.template'),os.path.join(run_dir,"gtsm_fine.ext"),keywords_EXT) 
     
     shfile = 'sbatch_snellius_delft3dfm2022.04_1x128cores_yearly.sh'
-    workfolder=f"ERA5_{tdate.year}"
+    workfolder=f"ERA5_{yr}"
     keywords_QSUB={'%JOBNAME%':workfolder}
     replace_all(os.path.join(templatedir,shfile),os.path.join(run_dir,'%s'%(shfile)),keywords_QSUB)
     
@@ -92,4 +91,4 @@ if __name__ == "__main__":
         yr = os.sys.argv[1]       
     else: 
         raise RuntimeError('No arguments were provided')
-    prepare_GTSM_monthly_runs(yr)
+    prepare_GTSM_yearly_runs(yr)
