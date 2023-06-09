@@ -5,25 +5,26 @@ Created on Mon Feb 12 17:25:23 2018
 
 @author: muis
 """
+
 import os
 import datetime as dt
 import shutil
 from distutils.dir_util import copy_tree
 
 
-def prepare_GTSM_monthly_runs(yr,base_dir):  
+def prepare_GTSM_monthly_runs(yr,base_dir):
     # calculate start and end times based on chosen reference time
     tdate = dt.datetime.strptime(yr,'%Y').date()
     date_start = dt.datetime(tdate.year,1,1)-dt.timedelta(days=17) # imposed 1 day zero, 1 day transition, 15 days spinup 
     date_end = dt.datetime(tdate.year+1,1,1)
     
-    refdate = dt.datetime(1900,1,1) 
-    tstart = (date_start-refdate).total_seconds() 
+    refdate = dt.datetime(1900,1,1)
+    tstart = (date_start-refdate).total_seconds()
     tstop = (date_end-refdate).total_seconds()
     
     print("reference date is ",str(refdate))
-    print("tstart is ",str(tstart)," seconds since ref time") 
-    print("tstop  is ",str(tstop)," seconds since ref time") 
+    print("tstart is ",str(tstart)," seconds since ref time")
+    print("tstop  is ",str(tstop)," seconds since ref time")
     # files
     meteofile_u=os.path.join(base_dir,f'meteo_ERA5_fm_extended/ERA5_CDS_atm_u10_{dt.datetime.strftime(date_start, "%Y-%m-%d")}_{dt.datetime.strftime(date_end, "%Y-%m-%d")}.nc')
     meteofile_v=os.path.join(base_dir,f'meteo_ERA5_fm_extended/ERA5_CDS_atm_v10_{dt.datetime.strftime(date_start, "%Y-%m-%d")}_{dt.datetime.strftime(date_end, "%Y-%m-%d")}.nc')
@@ -39,7 +40,7 @@ def prepare_GTSM_monthly_runs(yr,base_dir):
     
     # copy model files and template
     try:
-        os.stat(run_dir)               
+        os.stat(run_dir)
         raise Exception("Directory already exists ", run_dir)
     except OSError:
         print("copying ",templatedir," to ",run_dir)
@@ -55,7 +56,7 @@ def prepare_GTSM_monthly_runs(yr,base_dir):
     
     shfile = 'sbatch_snellius_delft3dfm2022.04_1x128cores_yearly.sh'
     workfolder=f"ERA5_{tdate.year}"
-    keywords_QSUB={'JOBNAME':workfolder} 
+    keywords_QSUB={'JOBNAME':workfolder}
     replace_all(os.path.join(templatedir,shfile),os.path.join(run_dir,'%s'%(shfile)),keywords_QSUB,'%')
     
     os.system("cd "+run_dir+"; chmod -R 777 *")
