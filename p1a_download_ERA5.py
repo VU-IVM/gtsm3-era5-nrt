@@ -3,9 +3,10 @@
 import os
 import calendar
 import cdsapi
+from path_dict import path_dict
 
-
-def download_era5(yr, mnth, outdir):
+def download_era5(yr, mnth):
+    outdir = path_dict['meteo_raw']
     # find times for monthly downlods
     firstday,lastday = calendar.monthrange(yr,mnth)
     # daily download
@@ -40,10 +41,8 @@ if __name__ == "__main__":
     if len(os.sys.argv)>1:
         yr = os.sys.argv[1]
         mnth = os.sys.argv[2]
-        outdir = os.sys.argv[3]
     else:
         #yr = 1960
         #mnth = 1
-        #outdir = './meteo_ERA5'
-        raise RuntimeError('No arguments were provided\nFirst argument should indicate year. Second argument should indicate month. Third argument for outdir. Script will download monthly files per day')
-    download_era5(yr,mnth,outdir)
+        raise RuntimeError('No arguments were provided\nFirst argument should indicate year. Second argument should indicate month. Script will download monthly files per day')
+    download_era5(yr,mnth)

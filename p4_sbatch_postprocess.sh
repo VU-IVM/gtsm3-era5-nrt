@@ -6,6 +6,7 @@
 #SBATCH --job-name=p4_sbatch_postprocess
 
 # load modules
+module purge
 module load 2021
 
 # settings

@@ -5,12 +5,14 @@ import xarray as xr
 import datetime as dt
 import numpy as np
 import glob
+from path_dict import path_dict
 
 
-def convert2FM(yr,input_dir):
+def convert2FM(yr):
     """
     interesting datestart is 1-1-yr, 15 days of spinup is added and two timefields with zeros and daily freq to assure zerostart
     """
+    input_dir = path_dict['meteo_raw']
     add_global_overlap = True #GTSM specific: extend data beyond -180 to 180 longitude
     zerostart = True #GTSM specific: extend data with 0-value fields 1 and 2 days before date_start_spinup, so starts at 15dec in the end
     
@@ -112,9 +114,7 @@ def convert2FM(yr,input_dir):
 if __name__ == "__main__":
     if len(os.sys.argv)>1:
         yr=os.sys.argv[1]
-        input_dir=os.sys.argv[2]        
     else:
         # yr = '1960'
-        # input_dir = './TEMP_meteo_ERA5'
-        raise RuntimeError('No arguments were provided\nFirst argument should indicate year as "yyyy".\n Second argument for input_dir') #TODO: re-enable this error again
-    convert2FM(yr,input_dir)
+        raise RuntimeError('No arguments were provided\nFirst argument should indicate year as "yyyy".')
+    convert2FM(yr)

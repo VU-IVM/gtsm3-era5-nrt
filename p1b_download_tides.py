@@ -3,9 +3,11 @@
 import os
 import cdsapi
 import zipfile
+from path_dict import path_dict
 
 
-def download_tides(yr, mnth, outdir):
+def download_tides(yr, mnth):
+    outdir = path_dict['tides_CDS']
     date_str = f'{yr}-{mnth:02d}'
     os.makedirs(outdir,exist_ok=True)
     # Monthly download
@@ -39,10 +41,8 @@ if __name__ == "__main__":
     if len(os.sys.argv)>1:
         yr = os.sys.argv[1]
         mnth = os.sys.argv[2]
-        outdir = os.sys.argv[3]
     else:
         yr = 1960
         mnth = 1
-        outdir = './tides_CDS'
-        # raise RuntimeError('No arguments were provided\nFirst argument should indicate year. Second argument should indicate month. Third argument for outdir. Script will download monthly files per day')
-    download_tides(yr,mnth,outdir)
+        #raise RuntimeError('No arguments were provided\nFirst argument should indicate year. Second argument should indicate month. Script will download monthly files per day')
+    download_tides(yr,mnth)
