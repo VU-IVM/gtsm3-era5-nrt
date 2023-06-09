@@ -6,6 +6,7 @@ import datetime as dt
 import numpy as np
 import glob
 
+
 def convert2FM(yr,input_dir):
     """
     interesting datestart is 1-1-yr, 15 days of spinup is added and two timefields with zeros and daily freq to assure zerostart
