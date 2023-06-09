@@ -9,6 +9,7 @@ import xarray as xr
 import sys
 import cartopy.crs as ccrs
 import matplotlib.pyplot as plt
+from path_dict import path_dict
 
 
 def resample_and_plot(outpath):
@@ -71,7 +72,7 @@ def resample_and_plot(outpath):
     fig.savefig(outpath.replace('.nc','_NL.png'))
 
 
-def exportTWL(dataset, outpath, raw_data, scenario):
+def exportTWL(dataset, outpath, raw_data):
     keys = list(dataset.keys()) # remove all variables except water level
     keys.remove('waterlevel')
     dataset = dataset.drop(keys)
@@ -180,17 +181,18 @@ def attrib(dataset):
     return dataset
 
 
-def raw2nc(scenario,year,mnth, mpath):
-    raw_data = {'era5': {'fpath': '''os.path.join(mpath,'model_input_ERA5_{}'.format(str(year)),
-                                              'output', 'gtsm_fine_0000_his.nc')''',
+def raw2nc(year, mnth, scenario):
+    mpath = path_dict['modelruns']
+    raw_data = {'era5': {'fpath': os.path.join(mpath, f'model_input_ERA5_{year}', 'output', 'gtsm_fine_0000_his.nc'),
                         'fname': 'era5', 
                         'opath': 'timeseries-GTSM-ERA5',
                         'ts':datetime(2019,1,1,0,0,0),
-                        'te':datetime(2022,1,1,0,0,0)},}
+                        'te':datetime(2022,1,1,0,0,0)},
+                }
     print(raw_data)
-    inpath = eval(raw_data[scenario]['fpath'])
-    outpath = os.path.join(r'/projects/0/einf3499/model_runs/', raw_data[scenario]['opath']) 
-    tpath = os.path.join(r'/projects/0/einf3499/tides_CDS/')
+    inpath = raw_data[scenario]['fpath']
+    outpath = os.path.join(mpath,'..', raw_data[scenario]['opath']) 
+    tpath = path_dict['tides_CDS']
     wpath = os.path.join(outpath, 'waterlevel')
     spath = os.path.join(outpath, 'surge')  
     
@@ -213,7 +215,7 @@ def raw2nc(scenario,year,mnth, mpath):
     
     if not os.path.exists(wfile):
         print('writing: ', wfile)
-        exportTWL(mth, wfile, raw_data, scenario)
+        exportTWL(mth, wfile, raw_data)
     resample_and_plot(wfile)
     if not os.path.exists(sfile):
         tf = xr.open_dataset(tfile, chunks={'stations': 1000}); tf.close()
@@ -230,9 +232,8 @@ if __name__ == "__main__":
         year = int(sys.argv[1])
         mnth = int(sys.argv[2])
         scenario = sys.argv[3]
-        mpath = sys.argv[4]
     else:
-        raise RuntimeError('No arguments were provided\nFirst argument should indicate year.\n Second argument for scenario, third for folder path')
+        raise RuntimeError('No arguments were provided\nFirst argument should indicate year.\n Third argument for scenario')
     
-    print(year, scenario, mnth, mpath)
-    raw2nc(scenario,year, mnth, mpath)
+    print(year, mnth, scenario)
+    raw2nc(year, mnth, scenario)
