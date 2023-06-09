@@ -1,24 +1,21 @@
 #!/usr/bin/env python
 
 import os
-import datetime as dt
 import calendar
 import cdsapi
 
 
 def download_era5(yr, mnth, outdir):
     # find times for monthly downlods
-    tstart = dt.datetime(yr,mnth,1).date()
-    lastday = calendar.monthrange(tstart.year,tstart.month)[1]
-    dayarray = ["{:02}".format(iday) for iday in range(1,lastday+1)]     
+    firstday,lastday = calendar.monthrange(yr,mnth)
     # daily download
     print ("######### ERA-5 from CDS #########")
     os.makedirs(outdir,exist_ok=True)
     # I/O - download the data
-    for day in dayarray:
-        print (f'getting data for {tstart.year}-{tstart.month:02d}-{day}')
-        tday = dt.datetime(day=int(day),month=tstart.month,year=tstart.year).date()
-        targetfile = os.path.join(outdir,"ERA5_CDS_atm_%s.nc" %(tday))
+    for day in range(firstday,lastday+1):
+        date_str = f'{yr}-{mnth:02d}-{day:02d}'
+        print (f'getting data for {date_str}')
+        targetfile = os.path.join(outdir,f"ERA5_CDS_atm_{date_str}.nc")
         if os.path.exists(targetfile):
             print('already downloaded')
             pass
@@ -28,8 +25,8 @@ def download_era5(yr, mnth, outdir):
                 {'product_type':'reanalysis',
                 'format':'netcdf',
                 'variable':['10m_u_component_of_wind','10m_v_component_of_wind','mean_sea_level_pressure'],
-                'year':tstart.year,
-                'month':[f"{tstart.month:02}"],
+                'year':yr,
+                'month':[f"{mnth:02}"],
                 'day':day,
                 'time':['00:00','01:00','02:00','03:00','04:00','05:00',
                         '06:00','07:00','08:00','09:00','10:00','11:00',
