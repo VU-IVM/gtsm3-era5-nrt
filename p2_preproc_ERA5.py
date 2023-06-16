@@ -35,30 +35,33 @@ def convert2FM(yr):
     print(f'opening multifile dataset of {len(file_list)} files matching "{dir_data}" (can take a while with lots of files)')
     data_xr = xr.open_mfdataset(file_list,
                                 #parallel=True, #TODO: speeds up the process, but often "OSError: [Errno -51] NetCDF: Unknown file format" on WCF
-                                chunks={'time':1}).sel(time=slice(date_start_spinup,date_end))
+                                chunks={'time':1})
     data_xr.close()
     print('...done')
     
+    time_slice = slice(date_start_spinup,date_end)
+    data_xr = data_xr.sel(time=time_slice)
     if data_xr.get_index('time').duplicated().any():
         print('dropping duplicate timesteps')
         data_xr = data_xr.sel(time=~data_xr.get_index('time').duplicated()) #drop duplicate timesteps
-    times_pd = data_xr['time'].to_series()
     
     #check if there are times selected
-    if len(times_pd)==0:
-        raise Exception('ERROR: no times selected, check tstart/tstop and file_nc')
-    
+    if len(data_xr.time)==0:
+        raise Exception(f'ERROR: no times selected, ds_text={data_xr.time[[0,-1]].to_numpy()} and time_slice={time_slice}')
+
     #check if there are no gaps (more than one unique timestep)
+    times_pd = data_xr['time'].to_series()
     timesteps_uniq = times_pd.diff().iloc[1:].unique()
     if len(timesteps_uniq)>1:
         raise Exception(f'ERROR: gaps found in selected dataset (are there sourcefiles missing?), unique timesteps (hour): {timesteps_uniq/1e9/3600}')
     
     #check if requested times are available in selected files (in times_pd)
-    if not date_start_spinup in times_pd.index:
-        raise Exception(f'ERROR: date_start_spinup="{date_start_spinup}" not in selected files, timerange: "{times_pd.index[0]}" to "{times_pd.index[-1]}"')
-    if not date_end in times_pd.index: #TODO: revert this comment
-        raise Exception(f'ERROR: date_end="{date_end}" not in selected files, timerange: "{times_pd.index[0]}" to "{times_pd.index[-1]}"')
+    if time_slice.start not in times_pd.index:
+        raise Exception(f'ERROR: time_slice_start="{time_slice.start}" not in selected files, timerange: "{times_pd.index[0]}" to "{times_pd.index[-1]}"')
+    if time_slice.stop not in times_pd.index:
+        raise Exception(f'ERROR: time_slice_stop="{time_slice.stop}" not in selected files, timerange: "{times_pd.index[0]}" to "{times_pd.index[-1]}"')
     
+    #convert 0to360 sourcedata to -180to+180
     convert_360to180 = (data_xr['longitude'].to_numpy()>180).any()
     if convert_360to180: #TODO: make more flexible for models that eg pass -180/+180 crossing (add overlap at lon edges).
         lon_newvar = (data_xr.coords['longitude'] + 180) % 360 - 180

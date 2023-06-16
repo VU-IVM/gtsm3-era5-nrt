@@ -43,6 +43,6 @@ if __name__ == "__main__":
         mnth = os.sys.argv[2]
     else:
         yr = 1960
-        mnth = 2
+        mnth = 1
         #raise RuntimeError('No arguments were provided\nFirst argument should indicate year. Second argument should indicate month. Script will download monthly files per day')
     download_era5(yr,mnth)
