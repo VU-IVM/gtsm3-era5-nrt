@@ -11,7 +11,7 @@ module load 2021
 for yr in {1960..1961..1}; do
 (
   echo $yr
-  conda run -n gtsm3-era5-nrt-slm python p2_preproc_ERA5.py $yr
+  conda run -n gtsm3-era5-nrt-slm python p2_preprocess_ERA5.py $yr
 ) &
 done
 wait
