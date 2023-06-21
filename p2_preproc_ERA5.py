@@ -8,6 +8,52 @@ import glob
 from path_dict import path_dict
 
 
+def recompute_scalefactor_offset_filelist(file_nc_list, data_xr):
+    """
+    First computes min/max from scalefactor/offset per variable in source ncfiles and keeps track of the extremes.
+    Then computes xcalefactor/offset per variable in merged ncfile and overwrites the encoding.
+    This makes sure int16 variables can be written while making sure the entire range is represented.
+    """
+    def compute_scale_and_offset(min, max, n=16):
+        # stretch/compress data to the available packed range
+        scale_factor = (max - min) / (2 ** n - 1)
+        # translate the range to be symmetric about zero
+        add_offset = min + 2 ** (n - 1) * scale_factor
+        return (scale_factor, add_offset)
+    #scale_factor, add_offset = compute_scale_and_offset(-100, 100)
+    
+    def compute_min_and_max(scale_factor,add_offset,n=16):
+        vals_range = scale_factor * (2 ** n - 1)
+        min = add_offset - 2 ** (n - 1) * scale_factor
+        max = min + vals_range
+        return min, max
+    #vals_min, vals_max = compute_min_and_max(scale_factor,add_offset)
+    
+    varkey_list = list(data_xr.data_vars)
+    
+    #get lowest min and highest max from all files for all variables
+    min_dict = {x:np.nan for x in varkey_list}
+    max_dict = {x:np.nan for x in varkey_list}
+    for file_nc in file_nc_list:
+        ds = xr.open_dataset(file_nc)
+        for varn in varkey_list:
+            nbits = ds[varn].encoding['dtype'].itemsize*8 #itemsize is in bytes, multiply by 8 to get bits
+            var_min,var_max = compute_min_and_max(ds[varn].encoding['scale_factor'], ds[varn].encoding['add_offset'], n=nbits)
+            min_dict[varn] = np.nanmin([min_dict[varn],var_min])
+            max_dict[varn] = np.nanmax([max_dict[varn],var_max])
+    
+    #recompute scale_factor and add_offset for all variables
+    for varn in varkey_list:
+        nbits = data_xr[varn].encoding['dtype'].itemsize*8 #itemsize is in bytes, multiply by 8 to get bits
+        var_sf, var_offset = compute_scale_and_offset(min_dict[varn],max_dict[varn],n=nbits)
+        #print(varn, var_sf, var_offset)
+        print(f"replacing {varn} scale_factor: {data_xr[varn].encoding['scale_factor']} with {var_sf}")
+        print(f"replacing {varn} add_offset: {data_xr[varn].encoding['add_offset']} with {var_offset}")
+        
+        data_xr[varn].encoding['scale_factor'] = var_sf
+        data_xr[varn].encoding['add_offset'] = var_offset
+
+
 def convert2FM(yr):
     """
     interesting datestart is 1-1-yr, 15 days of spinup is added and two timefields with zeros and daily freq to assure zerostart
@@ -20,6 +66,7 @@ def convert2FM(yr):
     date_start_spinup = tstart - dt.timedelta(days=15) # 17 dec 
     date_start_zero = date_start_spinup - dt.timedelta(days=2) # 15 dec
     date_end = dt.datetime(tstart.year+1,1,1)
+    time_slice = slice(date_start_spinup,date_end)
     
     varkey_list = ['msl','u10','v10'] #charnock, mean_sea_level_pressure, 10m_u_component_of_neutral_wind, 10m_v_component_of_neutral_wind
     
@@ -30,16 +77,19 @@ def convert2FM(yr):
     
     #generating file list
     dir_data = os.path.join(input_dir,'ERA5_CDS_atm_*-*-*.nc')
-    file_list = glob.glob(dir_data)
-    file_list.sort()
-    print(f'opening multifile dataset of {len(file_list)} files matching "{dir_data}" (can take a while with lots of files)')
-    data_xr = xr.open_mfdataset(file_list,
+    file_nc_list = glob.glob(dir_data)
+    file_nc_list.sort()
+    print(f'>> opening multifile dataset of {len(file_nc_list)} files matching "{dir_data}" (can take a while with lots of files): ',end='')
+    dtstart = dt.datetime.now()
+    data_xr = xr.open_mfdataset(file_nc_list,
                                 #parallel=True, #TODO: speeds up the process, but often "OSError: [Errno -51] NetCDF: Unknown file format" on WCF
                                 chunks={'time':1})
     data_xr.close()
-    print('...done')
+    print(f'{(dt.datetime.now()-dtstart).total_seconds():.2f} sec')
     
-    time_slice = slice(date_start_spinup,date_end)
+    recompute_scalefactor_offset_filelist(file_nc_list, data_xr)
+    
+    
     data_xr = data_xr.sel(time=time_slice)
     if data_xr.get_index('time').duplicated().any():
         print('dropping duplicate timesteps')
@@ -58,8 +108,8 @@ def convert2FM(yr):
     #check if requested times are available in selected files (in times_pd)
     if time_slice.start not in times_pd.index:
         raise Exception(f'ERROR: time_slice_start="{time_slice.start}" not in selected files, timerange: "{times_pd.index[0]}" to "{times_pd.index[-1]}"')
-    if time_slice.stop not in times_pd.index:
-        raise Exception(f'ERROR: time_slice_stop="{time_slice.stop}" not in selected files, timerange: "{times_pd.index[0]}" to "{times_pd.index[-1]}"')
+    # if time_slice.stop not in times_pd.index: #TODO: re-enable this part of the code
+    #     raise Exception(f'ERROR: time_slice_stop="{time_slice.stop}" not in selected files, timerange: "{times_pd.index[0]}" to "{times_pd.index[-1]}"')
     
     #convert 0to360 sourcedata to -180to+180
     convert_360to180 = (data_xr['longitude'].to_numpy()>180).any()
@@ -83,9 +133,11 @@ def convert2FM(yr):
     #'scale_factor': 0.17408786412952254, 'add_offset': 99637.53795606793
     #99637.53795606793 - 0.17408786412952254*32768
     #99637.53795606793 + 0.17408786412952254*32767
-    if zerostart:
-        field_zerostart = data_xr.isel(time=[0,0])*0 #two times first field, set values to 0
-        field_zerostart['time'] = [times_pd.index[0]-dt.timedelta(days=2),times_pd.index[0]-dt.timedelta(days=1)] #TODO: is one zero field not enough? (is replacing first field not also ok? (results in 1hr transition period)
+    if zerostart: #TODO: is one zero field not enough? (is replacing first field not also ok? (results in 1hr transition period)
+        field_zerostart = xr.zeros_like(data_xr.isel(time=[0,0])) #two times first field with zeros, encoding of data_vars is dropped)
+        field_zerostart['time'] = [times_pd.index[0]-dt.timedelta(days=2),times_pd.index[0]-dt.timedelta(days=1)] #this drops time var encoding
+        #for varn in varkey_list+['time']: #loop over variables and overwrite encoding with original #TODO: 0-msl values do not fit in int32 range, so will be incorrect
+        #    field_zerostart[varn].encoding = data_xr[varn].encoding
         data_xr = xr.concat([field_zerostart,data_xr],dim='time',combine_attrs='no_conflicts') #combine_attrs argument prevents attrs from being dropped
     
     # create variables 'dictionary' with attrs
@@ -104,7 +156,7 @@ def convert2FM(yr):
         "add_offset" : float(100000)}} #TODO: zero-fields will not fit in the resulting int16 range, so dtype=int16 is not possible
     #write to netcdf file
     print('writing file')
-    for varname in varkey_list[:0]: #TODO:revert back to entire list
+    for varname in varkey_list[:1]: #TODO:revert back to entire list
         data_xr_var = data_xr[varname]
         data_xr_var.attrs['standard_name'] = var_dict[varname]['standard_name'] #TODO: original long_name and units attrs are now conserved, so do not need to be enforced
         data_xr_var.attrs['coordinates'] = 'longitude latitude'
@@ -119,6 +171,12 @@ def convert2FM(yr):
         filename = f'ERA5_CDS_atm_{varname}_{dt.datetime.strftime(date_start_zero, "%Y-%m-%d")}_{dt.datetime.strftime(date_end, "%Y-%m-%d")}.nc'
         file_out = os.path.join(dir_output, filename)
         data_xr_var.to_netcdf(file_out)
+        
+        ds_out = xr.open_dataset(file_out)
+        import matplotlib.pyplot as plt
+        fig, (ax1,ax2,ax3) = plt.subplots(3,1,figsize=(12,8))
+        for iA,ax in enumerate([ax1,ax2,ax3]):
+            ds_out.msl.isel(time=iA).plot(ax=ax)
 
 
 if __name__ == "__main__":
