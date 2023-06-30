@@ -6,7 +6,9 @@ import zipfile
 from path_dict import path_dict
 
 
-def download_tides(yr, mnth):
+def download_tides(yy, mm):
+    yr=int(yy)
+    mnth=int(mm)
     outdir = path_dict['tides_CDS']
     date_str = f'{yr}-{mnth:02d}'
     os.makedirs(outdir,exist_ok=True)
@@ -39,10 +41,10 @@ def download_tides(yr, mnth):
 if __name__ == "__main__":
     # read input arguments
     if len(os.sys.argv)>1:
-        yr = os.sys.argv[1]
-        mnth = os.sys.argv[2]
+        yy = os.sys.argv[1]
+        mm = os.sys.argv[2]
     else:
-        yr = 1960
-        mnth = 1
+        yy = '1960'
+        mm = '1'
         #raise RuntimeError('No arguments were provided\nFirst argument should indicate year. Second argument should indicate month. Script will download monthly files per day')
-    download_tides(yr,mnth)
+    download_tides(yy,mm)

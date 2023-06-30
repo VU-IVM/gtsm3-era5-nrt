@@ -5,16 +5,18 @@ import calendar
 import cdsapi
 from path_dict import path_dict
 
-def download_era5(yr, mnth):
+def download_era5(yy,mm):
+    yr=int(yy)
+    mnth=int(mm)
     outdir = path_dict['meteo_raw']
+    print ("######### ERA-5 from CDS #########")
     # find times for monthly downlods
     numdays = calendar.monthrange(yr,mnth)[1] #returns weekday of first day of month and the number of days in the month
     # daily download
-    print ("######### ERA-5 from CDS #########")
     os.makedirs(outdir,exist_ok=True)
     # I/O - download the data
     for day in range(1,numdays+1):
-        date_str = f'{yr}-{mnth:02d}-{day:02d}'
+        date_str = f'{yr}-{mnth:02}-{day:02}'
         print (f'getting data for {date_str}')
         targetfile = os.path.join(outdir,f"ERA5_CDS_atm_{date_str}.nc")
         if os.path.exists(targetfile):
@@ -39,10 +41,10 @@ def download_era5(yr, mnth):
 if __name__ == "__main__":
     # read input arguments
     if len(os.sys.argv)>1:
-        yr = os.sys.argv[1]
-        mnth = os.sys.argv[2]
+        yy = os.sys.argv[1]
+        mm = os.sys.argv[2]
     else:
-        yr = 1960
-        mnth = 1
+        yy = '1960'
+        mm = '1'
         #raise RuntimeError('No arguments were provided\nFirst argument should indicate year. Second argument should indicate month. Script will download monthly files per day')
-    download_era5(yr,mnth)
+    download_era5(yy,mm)
