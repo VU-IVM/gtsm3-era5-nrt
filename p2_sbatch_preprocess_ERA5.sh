@@ -8,10 +8,10 @@
 module purge
 module load 2021
 
-for yr in {1960..1960..1}; do
+for yr in {1950..1951..1}; do
 (
   echo $yr
-  conda run -n gtsm3-era5-nrt-slm python p2_preprocess_ERA5.py $yr
+  conda run -n gtsm-era5-nrt-slm python p2_preprocess_ERA5.py $yr
 ) &
 done
 wait

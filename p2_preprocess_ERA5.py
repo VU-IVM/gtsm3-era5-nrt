@@ -70,10 +70,9 @@ def convert2FM(yr):
     
     varkey_list = ['msl','u10','v10'] #charnock, mean_sea_level_pressure, 10m_u_component_of_neutral_wind, 10m_v_component_of_neutral_wind
     
-    # Create output folder
-    dir_output = input_dir.replace('meteo_ERA5','meteo_ERA5_fm')
-    if not os.path.exists(dir_output):
-        os.makedirs(dir_output)
+    # Create output folder    
+    dir_output = path_dict['meteo_fm']
+    os.makedirs(dir_output,exist_ok=True)
     
     #generating file list
     dir_data = os.path.join(input_dir,'ERA5_CDS_atm_*-*-*.nc')
