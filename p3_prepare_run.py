@@ -14,9 +14,7 @@ from path_dict import path_dict
 
 
 def prepare_GTSM_yearly_runs(yr):
-
     yr=int(yr)
-    
     meteo_fm_dir = path_dict['meteo_fm']
     meteo_slr_dir = path_dict['meteo_SLR']
     meteo_msl_dir = path_dict['meteo_msl']
