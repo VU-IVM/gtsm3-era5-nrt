@@ -39,13 +39,14 @@ def resample_and_plot(outpath):
         v0 = ds_mean.waterlevel.values
         v1 = ds_min.waterlevel.values
         v2 = ds_max.waterlevel.values
+        
     # plot WORLD
     proj = ccrs.PlateCarree()
     fig, axes = plt.subplots(ncols=1, nrows=3,figsize=(20,7), subplot_kw={'projection': proj})
-    sc0=axes[0].scatter(x,y,s=10,c=v0,transform=proj,vmin=-1,vmax=0)
+    sc0=axes[0].scatter(x,y,s=10,c=v0,transform=proj,vmin=-0.5,vmax=0.5)
     fig.colorbar(sc0,ax=axes[0])
     axes[0].title.set_text('mean (m)')
-    sc1=axes[1].scatter(x,y,s=10,c=v1,transform=proj,vmin=-0.5,vmax=0.5)
+    sc1=axes[1].scatter(x,y,s=10,c=v1,transform=proj,vmin=-2,vmax=0)
     fig.colorbar(sc1,ax=axes[1])
     axes[1].title.set_text('min (m)')
     sc2=axes[2].scatter(x,y,s=10,c=v2,transform=proj,vmin=0,vmax=2)
@@ -55,12 +56,13 @@ def resample_and_plot(outpath):
         ax.set_global()
         ax.coastlines()
     fig.savefig(outpath.replace('.nc','.png'))
+    
     # plot NL
     fig, axes = plt.subplots(ncols=1, nrows=3,figsize=(20,7), subplot_kw={'projection': proj})
-    sc0=axes[0].scatter(x,y,s=10,c=v0,transform=proj,vmin=-1,vmax=0)
+    sc0=axes[0].scatter(x,y,s=10,c=v0,transform=proj,vmin=-0.5,vmax=0.5)
     fig.colorbar(sc0,ax=axes[0])
     axes[0].title.set_text('mean (m)')
-    sc1=axes[1].scatter(x,y,s=10,c=v1,transform=proj,vmin=-0.5,vmax=0.5)
+    sc1=axes[1].scatter(x,y,s=10,c=v1,transform=proj,vmin=-2,vmax=0)
     fig.colorbar(sc1,ax=axes[1])
     axes[1].title.set_text('min (m)')
     sc2 = axes[2].scatter(x,y,s=10,c=v2,transform=proj,vmin=0,vmax=2)
@@ -186,22 +188,30 @@ def raw2nc(year, mnth, scenario):
     raw_data = {'era5': {'fpath': os.path.join(mpath, f'model_input_ERA5_{year}', 'output', 'gtsm_fine_0000_his.nc'),
                         'fname': 'era5', 
                         'opath': 'timeseries-GTSM-ERA5',
-                        'ts':datetime(2019,1,1,0,0,0),
-                        'te':datetime(2022,1,1,0,0,0)},
+                        'opath_stats': 'stats-GTSM-ERA5'},
                 }
     print(raw_data)
     inpath = raw_data[scenario]['fpath']
-    outpath = os.path.join(mpath,'..', raw_data[scenario]['opath']) 
+    outpath = os.path.join(os.path.dirname(mpath), raw_data[scenario]['opath']) 
     tpath = path_dict['tides_CDS']
     wpath = os.path.join(outpath, 'waterlevel')
     spath = os.path.join(outpath, 'surge')  
     
-    texp = 'future'
+    outpath_stats = os.path.join(os.path.dirname(mpath), raw_data[scenario]['opath_stats'])
+    wpath_stats = os.path.join(outpath_stats, 'waterlevel')
+    spath_stats = os.path.join(outpath_stats, 'surge') 
+    
+    texp = 'historical'
     exp = 'reanalysis'
     
     for i in [tpath, wpath, spath]:
         if not os.path.exists(i):
             os.makedirs(i)
+            
+    for i in [wpath_stats, spath_stats]:
+        if not os.path.exists(i):
+            os.makedirs(i)
+            
     ds = xr.open_dataset(inpath); ds.close()
     print('ds loaded')   
     
@@ -209,7 +219,7 @@ def raw2nc(year, mnth, scenario):
     print('Processing {}'.format(date.strftime('%Y-%m')))
     mth = ds.sel(time='{}-{}'.format(date.strftime('%Y'), date.strftime('%m')))
     
-    tfile = os.path.join(tpath,'{}_tide_{}_{}_v1.nc'.format(texp,date.strftime('%Y'), date.strftime('%m')))   
+    tfile = os.path.join(tpath,'{}_tide_{}_{}_v1.nc'.format(texp,date.strftime('%Y'), date.strftime('%m')))   #TODO: check writing of this output
     sfile = os.path.join(spath,'{}_{}_surge_{}_{}_v1.nc'.format(raw_data[scenario]['fname'].split('_')[0],exp,date.strftime('%Y'), date.strftime('%m')))
     wfile = os.path.join(wpath,'{}_{}_waterlevel_{}_{}_v1.nc'.format(raw_data[scenario]['fname'].split('_')[0],exp,date.strftime('%Y'),date.strftime('%m')))
     
@@ -218,7 +228,7 @@ def raw2nc(year, mnth, scenario):
         exportTWL(mth, wfile, raw_data)
     resample_and_plot(wfile)
     if not os.path.exists(sfile):
-        tf = xr.open_dataset(tfile, chunks={'stations': 1000}); tf.close()
+        tf = xr.open_dataset(tfile, chunks={'stations': 1000}); tf.close() 
         wf = xr.open_dataset(wfile, chunks={'stations': 1000}); wf.close()
         print('writing: ', sfile)
         exportSurge(wf, tf, sfile)
