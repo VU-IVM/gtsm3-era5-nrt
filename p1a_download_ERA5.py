@@ -5,16 +5,14 @@ import calendar
 import cdsapi
 from path_dict import path_dict
 
-def download_era5(yr,mnth):
+def download_era5(yr, mnth):
     yr=int(yr)
     mnth=int(mnth)
     outdir = path_dict['meteo_raw']
-    print ("######### ERA-5 from CDS #########")
-    print(mnth,yr)
     # find times for monthly downlods
     numdays = calendar.monthrange(yr,mnth)[1] #returns weekday of first day of month and the number of days in the month
-    print(numdays)
     # daily download
+    print ("######### ERA-5 from CDS #########")
     os.makedirs(outdir,exist_ok=True)
     # I/O - download the data
     for day in range(1,numdays+1):
