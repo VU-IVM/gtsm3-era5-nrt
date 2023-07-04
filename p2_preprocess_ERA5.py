@@ -155,7 +155,7 @@ def convert2FM(yr):
         "add_offset" : float(100000)}} #TODO: zero-fields will not fit in the resulting int16 range, so dtype=int16 is not possible
     #write to netcdf file
     print('writing file')
-    for varname in varkey_list[:1]: #TODO:revert back to entire list
+    for varname in varkey_list: #TODO:revert back to entire list
         data_xr_var = data_xr[varname]
         data_xr_var.attrs['standard_name'] = var_dict[varname]['standard_name'] #TODO: original long_name and units attrs are now conserved, so do not need to be enforced
         data_xr_var.attrs['coordinates'] = 'longitude latitude'
@@ -175,7 +175,7 @@ def convert2FM(yr):
         import matplotlib.pyplot as plt
         fig, (ax1,ax2,ax3) = plt.subplots(3,1,figsize=(12,8))
         for iA,ax in enumerate([ax1,ax2,ax3]):
-            ds_out.msl.isel(time=iA).plot(ax=ax)
+            ds_out[varname].isel(time=iA).plot(ax=ax)
 
 
 if __name__ == "__main__":
