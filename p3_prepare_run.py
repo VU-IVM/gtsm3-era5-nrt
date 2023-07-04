@@ -14,6 +14,9 @@ from path_dict import path_dict
 
 
 def prepare_GTSM_yearly_runs(yr):
+
+    yr=int(yr)
+    
     meteo_fm_dir = path_dict['meteo_fm']
     meteo_slr_dir = path_dict['meteo_SLR']
     meteo_msl_dir = path_dict['meteo_msl']
@@ -40,7 +43,7 @@ def prepare_GTSM_yearly_runs(yr):
     MSLcorrfile=os.path.join(meteo_msl_dir, "ERAInterim_average_msl_neg_%s1215_%s0101.nc" %(int(yr-1), int(yr)+1)) # need to be updated
     
     templatedir=os.path.join(modeltemplate_dir,'model_input_template')
-    modelfilesdir=os.path.join(modeltemplate_dir,'model_files')
+    modelfilesdir=os.path.join(modeltemplate_dir,'model_input_files')
     run_dir = os.path.join(modelruns_dir,f'model_input_ERA5_{yr}')
     
     # copy model files and template if not exists
