@@ -59,8 +59,8 @@ def convert2FM(yr):
     #check if requested times are available in selected files (in times_pd)
     if time_slice.start not in times_pd.index:
         raise Exception(f'ERROR: time_slice_start="{time_slice.start}" not in selected files, timerange: "{times_pd.index[0]}" to "{times_pd.index[-1]}"')
-    # if time_slice.stop not in times_pd.index: #TODO: re-enable this part of the code
-    #     raise Exception(f'ERROR: time_slice_stop="{time_slice.stop}" not in selected files, timerange: "{times_pd.index[0]}" to "{times_pd.index[-1]}"')
+    if time_slice.stop not in times_pd.index:
+        raise Exception(f'ERROR: time_slice_stop="{time_slice.stop}" not in selected files, timerange: "{times_pd.index[0]}" to "{times_pd.index[-1]}"')
     
     #convert 0to360 sourcedata to -180to+180
     convert_360to180 = (data_xr['longitude'].to_numpy()>180).any()
@@ -80,8 +80,7 @@ def convert2FM(yr):
         data_xr = xr.concat([data_xr,overlap_ltor,overlap_rtol],dim='longitude').sortby('longitude')
     
     #GTSM specific addition for zerovalues during spinup
-    # TODO: doing this drops all encoding from variables, causing them to be converted into floats. Also makes sense since 0 pressure does not fit into int16 range as defined by scalefac and offset
-    # TODO: alternative approach: https://github.com/sannemuis/gtsm3-era5-nrt/issues/2
+    # doing this drops all encoding from variables, causing them to be converted into floats. Also makes sense since 0 pressure does not fit into int16 range as defined by scalefac and offset
     if zerostart: #TODO: is one zero field not enough? (is replacing first field not also ok? (results in 1hr transition period)
         field_zerostart = xr.zeros_like(data_xr.isel(time=[0,0])) #two times first field with zeros, encoding of data_vars is dropped)
         field_zerostart['time'] = [times_pd.index[0]-dt.timedelta(days=2),times_pd.index[0]-dt.timedelta(days=1)] #this drops time var encoding
