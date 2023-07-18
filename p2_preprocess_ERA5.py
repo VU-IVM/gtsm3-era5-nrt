@@ -87,18 +87,11 @@ def convert2FM(yr):
         field_zerostart['time'] = [times_pd.index[0]-dt.timedelta(days=2),times_pd.index[0]-dt.timedelta(days=1)] #this drops time var encoding
         data_xr = xr.concat([field_zerostart,data_xr],dim='time',combine_attrs='no_conflicts') #combine_attrs argument prevents attrs from being dropped
     
-    # create variables 'dictionary' with attrs
-    standard_name_dict = { 
-      "u10": "eastward_wind", #TODO: missing from ERA5 dataset >> couple via quantity/varname in extfile
-      "v10": "northward_wind", #TODO: missing from ERA5 dataset
-      "msl": "air_pressure", #TODO: is air_pressure_at_mean_sea_level in ERA5 dataset
-      }
     #write to netcdf file
     print('writing file')
     for varname in varkey_list:
         data_xr_var = data_xr[varname]
         # original long_name and units attrs are now conserved, so do not need to be enforced here
-        data_xr_var.attrs['standard_name'] = standard_name_dict[varname]
         data_xr_var.attrs['coordinates'] = 'longitude latitude'
         filename = f'ERA5_CDS_atm_{varname}_{dt.datetime.strftime(date_start_zero, "%Y-%m-%d")}_{dt.datetime.strftime(date_end, "%Y-%m-%d")}.nc'
         file_out = os.path.join(dir_output, filename)
