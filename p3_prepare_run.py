@@ -19,6 +19,7 @@ def prepare_GTSM_yearly_runs(yr):
     meteo_slr_dir = path_dict['meteo_SLR']
     meteo_msl_dir = path_dict['meteo_msl']
     modeltemplate_dir = path_dict['modeltemplate']
+    modelfiles_dir = path_dict['modelfiles']
     modelruns_dir = path_dict['modelruns']
     
     # calculate start and end times based on chosen reference time
@@ -40,28 +41,25 @@ def prepare_GTSM_yearly_runs(yr):
     SLRfile=os.path.join(meteo_slr_dir,"TotalSeaLevel_MapsSROCC_rcp85_Perc50_zero1986to2005_dflow_extrap.nc")  
     MSLcorrfile=os.path.join(meteo_msl_dir, "ERAInterim_average_msl_neg_%s1215_%s0101.nc" %(int(yr-1), int(yr)+1)) # need to be updated
     
-    templatedir=os.path.join(modeltemplate_dir,'model_input_template')
-    modelfilesdir=os.path.join(modeltemplate_dir,'model_input_files')
-    run_dir = os.path.join(modelruns_dir,f'model_input_ERA5_{yr}')
-    
     # copy model files and template if not exists
+    run_dir = os.path.join(modelruns_dir,f'model_input_ERA5_{yr}')
     if os.path.exists(run_dir):
         raise Exception("Directory already exists ", run_dir)
-    print("copying ",templatedir," to ",run_dir)
-    shutil.copytree(templatedir,run_dir,symlinks=False,ignore=None)
-    copy_tree(modelfilesdir, run_dir)
+    print("copying ",modeltemplate_dir," to ",run_dir)
+    shutil.copytree(modeltemplate_dir,run_dir,symlinks=False,ignore=None)
+    copy_tree(modelfiles_dir, run_dir)
     
     # change templates
     keywords_MDU={'%REFDATE%':refdate.strftime("%Y%m%d"),'%TSTART%':str(tstart),'%TSTOP%':str(tstop)}
     replace_all(os.path.join(run_dir,"gtsm_fine.mdu.template"), os.path.join(run_dir,"gtsm_fine.mdu"),keywords_MDU)
     
     keywords_EXT={'%METEOFILE_GLOB_U%':meteofile_u,'%METEOFILE_GLOB_V%':meteofile_v,'%METEOFILE_GLOB_P%':meteofile_p, '%METEOFILE_MSLCORR%':MSLcorrfile,'%METEOFILE_SLR%':SLRfile}
-    replace_all(os.path.join(templatedir,'gtsm_fine.ext.template'),os.path.join(run_dir,"gtsm_fine.ext"),keywords_EXT) 
+    replace_all(os.path.join(modeltemplate_dir,'gtsm_fine.ext.template'),os.path.join(run_dir,"gtsm_fine.ext"),keywords_EXT) 
     
     shfile = 'sbatch_snellius_delft3dfm2022.04_1x128cores_yearly.sh'
     workfolder=f"ERA5_{yr}"
     keywords_QSUB={'%JOBNAME%':workfolder}
-    replace_all(os.path.join(templatedir,shfile),os.path.join(run_dir,'%s'%(shfile)),keywords_QSUB)
+    replace_all(os.path.join(modeltemplate_dir,shfile),os.path.join(run_dir,'%s'%(shfile)),keywords_QSUB)
     
     os.system("cd "+run_dir+"; chmod -R 777 *")
 
