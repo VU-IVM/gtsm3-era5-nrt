@@ -20,10 +20,3 @@ for yr in {1960..1960..1}; do
   done
 done
 wait
-
-# WORKFLOW for postprocessing
-#
-# 1 remove spinup
-# 2 compute surge residual
-# 3 change attributes and write monthly files
-# 4 ompute and plot min, max, mean for monhtly and annual files 

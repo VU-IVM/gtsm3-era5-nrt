@@ -30,8 +30,9 @@ The Python scripts submitted by the bash script are used to download and preproc
 - ```p3_prepare_run.py``` functionality to prepare the GTSM model 
     - copy model files and use template to change folder paths 
 - ```p4_postprocess_FM.py``` functionality to proprocess GTSM simulation results
-    - convert netcdf output into CDS appropiate format 
-    - compute residual water levels and annual means
+    - remove spinup
+	- convert netcdf output into CDS appropiate format 
+    - compute residual water levels and monthly/annual means
     - plotting results (min, max, mean) on global map
   
 To be able to run the Python script you need to install conda and create an virtual environment using the environment.yml file (```conda env create --file environment.yml```). This installs the required packages, such as xarray, netCDF4, cartopy, etc. 
