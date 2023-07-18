@@ -172,10 +172,6 @@ def convert2FM(yr):
         data_xr_var.to_netcdf(file_out)
         
         ds_out = xr.open_dataset(file_out)
-        import matplotlib.pyplot as plt
-        fig, (ax1,ax2,ax3) = plt.subplots(3,1,figsize=(12,8))
-        for iA,ax in enumerate([ax1,ax2,ax3]):
-            ds_out[varname].isel(time=iA).plot(ax=ax)
 
 
 if __name__ == "__main__":
