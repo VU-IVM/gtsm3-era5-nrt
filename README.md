@@ -29,7 +29,8 @@ The Python scripts submitted by the bash script are used to download and preproc
 	- include spinup in yearly files
     - set initial timesteps to zero to allow for SLR correction
 - `p3_prepare_run.py` functionality to prepare the GTSM model 
-    - copy model files and use template to change folder paths 
+    - copy model files and use template to change folder paths
+	- this scripts assumes `Tunit=S` in the mdu file
 - `p4_postprocess_FM.py` functionality to proprocess GTSM simulation results
     - remove spinup
 	- convert netcdf output into CDS appropiate format 
@@ -40,7 +41,7 @@ To be able to run the Python script you need to install conda and create an virt
 
 ## Non-automated data sources
 
-There are two data sources for which retrieval is not automated yet.
+There are some data sources for which retrieval is not automated yet.
 
 ### download delft3dfm container
 Delft3dfm containers are available at `p:\d-hydro\delft3dfm_containers`. The `singularityFolder` parameter in the sbatch file in the `modelfiles` folder has to point to the path that contains the `.sif` file
