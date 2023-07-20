@@ -54,7 +54,7 @@ def prepare_GTSM_yearly_runs(yr):
     keywords_EXT={'%METEOFILE_GLOB_U%':meteofile_u,'%METEOFILE_GLOB_V%':meteofile_v,'%METEOFILE_GLOB_P%':meteofile_p, '%METEOFILE_MSLCORR%':MSLcorrfile,'%METEOFILE_SLR%':SLRfile}
     replace_all(os.path.join(run_dir,'gtsm_fine.ext.template'),os.path.join(run_dir,"gtsm_fine.ext"),keywords_EXT) 
     
-    shfile = 'sbatch_snellius_delft3dfm2022.04_1x128cores_yearly.sh'
+    shfile = 'sbatch_singularity_snellius_1x128cores.sh'
     shfile_template = shfile+'.template'
     workfolder=f"ERA5_{yr}"
     keywords_QSUB={'%JOBNAME%':workfolder, '%DIR_FMCONTAINER%':fmcontainer_dir}
