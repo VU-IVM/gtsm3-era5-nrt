@@ -19,6 +19,7 @@ def prepare_GTSM_yearly_runs(yr):
     meteo_msl_dir = path_dict['meteo_msl']
     modelfiles_dir = path_dict['modelfiles']
     modelruns_dir = path_dict['modelruns']
+    fmcontainer_dir = path_dict['fmcontainer']
     
     # calculate start and end times based on chosen reference time
     date_start = dt.datetime(yr,1,1)-dt.timedelta(days=17) # imposed 1 day zero, 1 day transition, 15 days spinup 
@@ -54,9 +55,10 @@ def prepare_GTSM_yearly_runs(yr):
     replace_all(os.path.join(run_dir,'gtsm_fine.ext.template'),os.path.join(run_dir,"gtsm_fine.ext"),keywords_EXT) 
     
     shfile = 'sbatch_snellius_delft3dfm2022.04_1x128cores_yearly.sh'
+    shfile_template = shfile+'.template'
     workfolder=f"ERA5_{yr}"
-    keywords_QSUB={'%JOBNAME%':workfolder}
-    replace_all(os.path.join(run_dir,shfile),os.path.join(run_dir,'%s'%(shfile)),keywords_QSUB)
+    keywords_QSUB={'%JOBNAME%':workfolder, '%DIR_FMCONTAINER%':fmcontainer_dir}
+    replace_all(os.path.join(run_dir,shfile_template),os.path.join(run_dir,shfile),keywords_QSUB)
     
     os.system("cd "+run_dir+"; chmod -R 777 *")
 

@@ -44,7 +44,7 @@ To be able to run the Python script you need to install conda and create an virt
 There are some data sources for which retrieval is not automated yet.
 
 ### download delft3dfm container
-Delft3dfm containers are available at `p:\d-hydro\delft3dfm_containers`. The `singularityFolder` parameter in the sbatch file in the `modelfiles` folder has to point to the path that contains the `.sif` file
+Download a delft3dfm container from `p:\d-hydro\delft3dfm_containers` to the `fm_container` folder in `path_dict.py`
 
 ### meteo_MSL
 to be described

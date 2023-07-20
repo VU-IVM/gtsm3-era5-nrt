@@ -15,6 +15,7 @@ path_dict = {'git_checkout': base_dir+'/00_scripts_git',
              'meteo_SLR':    base_dir+'/05_meteo_SLR',
              'modelfiles':   base_dir+'/06_model_runs/model_input_files',
              'modelruns':    base_dir+'/06_model_runs/slr_tide_surge_runs',
+             'fm_container': base_dir+'/99_delft3dfm_containers/delft3dfm_2022.04',
              }
 
 if __name__ == "__main__":

@@ -13,6 +13,7 @@ cd dir_modelfiles
 #checkout gtsm3_cmip6 repos folder to dir_modelfiles
 svn checkout https://repos.deltares.nl/repos/global_tide_surge_model/trunk/gtsm3_cmip6 .
 
-#remove non-template ext and mdu to avoid issues
+#remove non-template ext/mdu/sh files to avoid issues/confusion
 rm *.ext
 rm *.mdu
+rm *.sh
