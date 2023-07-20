@@ -37,6 +37,15 @@ The Python scripts submitted by the bash script are used to download and preproc
   
 To be able to run the Python script you need to install conda and create an virtual environment using the environment.yml file (```conda env create --file environment.yml```). This installs the required packages, such as xarray, netCDF4, cartopy, etc. 
 
+### Non-automated data sources
+
+There are some data sources for which retrieval is not automated yet.
+
+- ```meteo_SLR```: to be described
+- ```meteo_MSL```: to be described
+- ```modelfiles```: the ```gtsm3_cmip3``` model can be retrieved from the GTSM repository at https://repos.deltares.nl/repos/global_tide_surge_model/trunk/gtsm3_cmip6 (access required) and copied to the ```modelfiles``` folder as specified in `path_dict.py` (update to zenodo once published)
+
+
 ## Contact
 Sanne Muis - sanne.muis@deltares.nl
 
