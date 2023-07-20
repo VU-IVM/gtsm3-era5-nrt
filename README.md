@@ -12,6 +12,7 @@ workflow --> automate with crontab/job
 
 - `p1a_sbatch_download_era5.sh` takes care of downloading ERA5 data (see p1a download_CDS_ERA5.py below)
 - `p1b_sbatch_download_tides.sh` takes care of downloading tide data (see p1b dowload_CDS_tides.py below)
+- `p1c_checkout_gtsm3_cmip6.sh` checkout gtsm3_cmip6 repos to modelfiles folder, this contains the modelfiles and template files (requires authentication, update to zenodo once published)
 - `p2_sbatch_preprocess_ERA5.sh` converts the ERA5 data into FM inout format (see p2_preproc_meteo.py below)
 - `p3_prepare_run.sh` prepares the GTSM run by copying models files from template (see p3_prepare_gtsm_run.py below)
 - `p4_sbatch_postprocess.sh` converts to CDS format and plots the results of the simulations (see p4_postprocess_FM.py below)
@@ -37,13 +38,15 @@ The Python scripts submitted by the bash script are used to download and preproc
   
 To be able to run the Python script you need to install conda and create an virtual environment using the environment.yml file (`conda env create --file environment.yml`). This installs the required packages, such as xarray, netCDF4, cartopy, etc. 
 
-### Non-automated data sources
+## Non-automated data sources
 
-There are some data sources for which retrieval is not automated yet.
+There are two data sources for which retrieval is not automated yet.
 
-- `meteo_MSL`: to be described
-- `meteo_SLR`: to be described
-- `modelfiles`: the `gtsm3_cmip3` model can be retrieved from the GTSM repository at https://repos.deltares.nl/repos/global_tide_surge_model/trunk/gtsm3_cmip6 (access required) and copied to the `modelfiles` folder as specified in `path_dict.py` (update to zenodo once published)
+### meteo_MSL
+to be described
+
+### meteo_SLR
+to be described
 
 
 ## Contact

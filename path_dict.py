@@ -13,8 +13,14 @@ path_dict = {'git_checkout': base_dir+'/00_scripts_git',
              'tides_CDS':    base_dir+'/03_tides_CDS', 
              'meteo_msl':    base_dir+'/04_meteo_msl',
              'meteo_SLR':    base_dir+'/05_meteo_SLR',
-             'modeltemplate':base_dir+'/00_scripts_git/model_input_template',
-             'modelfiles':   base_dir+'/06_model_runs/model_input/model_input_files',
+             'modelfiles':   base_dir+'/06_model_runs/model_input_files',
              'modelruns':    base_dir+'/06_model_runs/slr_tide_surge_runs',
              }
 
+if __name__ == "__main__":
+    import os
+    if len(os.sys.argv)>1:
+        key = os.sys.argv[1]       
+    else: 
+        raise RuntimeError('No arguments were provided')
+    print(path_dict[key])
