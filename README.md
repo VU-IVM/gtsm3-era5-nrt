@@ -12,7 +12,7 @@ workflow --> automate with crontab/job
 
 - `p1a_sbatch_download_era5.sh` takes care of downloading ERA5 data (see p1a download_CDS_ERA5.py below)
 - `p1b_sbatch_download_tides.sh` takes care of downloading tide data (see p1b dowload_CDS_tides.py below)
-- `p1c_checkout_gtsm3_cmip6.sh` checkout gtsm3_cmip6 repos to modelfiles folder, this contains the modelfiles and template files (requires authentication, update to zenodo once published)
+- `p1c_checkout_gtsm3_cmip6.sh` checkout gtsm3_cmip6 repos to the `modelfiles` folder, this contains the modelfiles and template files (requires authentication, update to zenodo once published)
 - `p2_sbatch_preprocess_ERA5.sh` converts the ERA5 data into FM inout format (see p2_preproc_meteo.py below)
 - `p3_prepare_run.sh` prepares the GTSM run by copying models files from template (see p3_prepare_gtsm_run.py below)
 - `p4_sbatch_postprocess.sh` converts to CDS format and plots the results of the simulations (see p4_postprocess_FM.py below)
@@ -41,6 +41,9 @@ To be able to run the Python script you need to install conda and create an virt
 ## Non-automated data sources
 
 There are two data sources for which retrieval is not automated yet.
+
+### download delft3dfm container
+Delft3dfm containers are available at `p:\d-hydro\delft3dfm_containers`. The `singularityFolder` parameter in the sbatch file in the `modelfiles` folder has to point to the path that contains the `.sif` file
 
 ### meteo_MSL
 to be described
