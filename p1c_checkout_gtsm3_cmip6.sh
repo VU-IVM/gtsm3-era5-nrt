@@ -17,3 +17,4 @@ svn checkout https://repos.deltares.nl/repos/global_tide_surge_model/trunk/gtsm3
 rm $dir_modelfiles/*.ext
 rm $dir_modelfiles/*.mdu
 rm $dir_modelfiles/*.sh
+rm -rf $dir_modelfiles/.svn
