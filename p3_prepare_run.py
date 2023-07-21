@@ -8,7 +8,6 @@ Created on Mon Feb 12 17:25:23 2018
 
 import os
 import datetime as dt
-import shutil
 from distutils.dir_util import copy_tree
 from path_dict import path_dict
 
@@ -18,9 +17,9 @@ def prepare_GTSM_yearly_runs(yr):
     meteo_fm_dir = path_dict['meteo_fm']
     meteo_slr_dir = path_dict['meteo_SLR']
     meteo_msl_dir = path_dict['meteo_msl']
-    modeltemplate_dir = path_dict['modeltemplate']
     modelfiles_dir = path_dict['modelfiles']
     modelruns_dir = path_dict['modelruns']
+    fmcontainer_dir = path_dict['fm_container']
     
     # calculate start and end times based on chosen reference time
     date_start = dt.datetime(yr,1,1)-dt.timedelta(days=17) # imposed 1 day zero, 1 day transition, 15 days spinup 
@@ -45,21 +44,21 @@ def prepare_GTSM_yearly_runs(yr):
     run_dir = os.path.join(modelruns_dir,f'model_input_ERA5_{yr}')
     if os.path.exists(run_dir):
         raise Exception("Directory already exists ", run_dir)
-    print("copying ",modeltemplate_dir," to ",run_dir)
-    shutil.copytree(modeltemplate_dir,run_dir,symlinks=False,ignore=None)
+    print("copying ",modelfiles_dir," to ",run_dir)
     copy_tree(modelfiles_dir, run_dir)
     
     # change templates
-    keywords_MDU={'%REFDATE%':refdate.strftime("%Y%m%d"),'%TSTART%':str(tstart),'%TSTOP%':str(tstop)}
+    keywords_MDU={'%REFDATE%':refdate.strftime("%Y%m%d"),'%TUNIT%':'S','%TSTART%':str(tstart),'%TSTOP%':str(tstop)}
     replace_all(os.path.join(run_dir,"gtsm_fine.mdu.template"), os.path.join(run_dir,"gtsm_fine.mdu"),keywords_MDU)
     
     keywords_EXT={'%METEOFILE_GLOB_U%':meteofile_u,'%METEOFILE_GLOB_V%':meteofile_v,'%METEOFILE_GLOB_P%':meteofile_p, '%METEOFILE_MSLCORR%':MSLcorrfile,'%METEOFILE_SLR%':SLRfile}
-    replace_all(os.path.join(modeltemplate_dir,'gtsm_fine.ext.template'),os.path.join(run_dir,"gtsm_fine.ext"),keywords_EXT) 
+    replace_all(os.path.join(run_dir,'gtsm_fine.ext.template'),os.path.join(run_dir,"gtsm_fine.ext"),keywords_EXT) 
     
-    shfile = 'sbatch_snellius_delft3dfm2022.04_1x128cores_yearly.sh'
+    shfile = 'sbatch_singularity_snellius_1x128cores.sh'
+    shfile_template = shfile+'.template'
     workfolder=f"ERA5_{yr}"
-    keywords_QSUB={'%JOBNAME%':workfolder}
-    replace_all(os.path.join(modeltemplate_dir,shfile),os.path.join(run_dir,'%s'%(shfile)),keywords_QSUB)
+    keywords_QSUB={'%JOBNAME%':workfolder, '%DIR_FMCONTAINER%':fmcontainer_dir}
+    replace_all(os.path.join(run_dir,shfile_template),os.path.join(run_dir,shfile),keywords_QSUB)
     
     os.system("cd "+run_dir+"; chmod -R 777 *")
 
