@@ -19,7 +19,7 @@ def prepare_GTSM_yearly_runs(yr):
     meteo_msl_dir = path_dict['meteo_msl']
     modelfiles_dir = path_dict['modelfiles']
     modelruns_dir = path_dict['modelruns']
-    fmcontainer_dir = path_dict['fmcontainer']
+    fmcontainer_dir = path_dict['fm_container']
     
     # calculate start and end times based on chosen reference time
     date_start = dt.datetime(yr,1,1)-dt.timedelta(days=17) # imposed 1 day zero, 1 day transition, 15 days spinup 
