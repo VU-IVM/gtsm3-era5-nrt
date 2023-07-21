@@ -101,8 +101,7 @@ if __name__ == "__main__":
     if len(os.sys.argv)>1:
         yr=os.sys.argv[1]
     else:
-        yr = '1960'
-        #raise RuntimeError('No arguments were provided\nFirst argument should indicate year as "yyyy".')
+        raise RuntimeError('No arguments were provided\nFirst argument should indicate year as "yyyy".')
     tstart = dt.datetime.now()
     convert2FM(yr)
     print('time passed:',dt.datetime.now()-tstart)
