@@ -48,7 +48,7 @@ def prepare_GTSM_yearly_runs(yr):
     copy_tree(modelfiles_dir, run_dir)
     
     # change templates
-    keywords_MDU={'%REFDATE%':refdate.strftime("%Y%m%d"),'%TSTART%':str(tstart),'%TSTOP%':str(tstop)}
+    keywords_MDU={'%REFDATE%':refdate.strftime("%Y%m%d"),'%TUNIT%':'S','%TSTART%':str(tstart),'%TSTOP%':str(tstop)}
     replace_all(os.path.join(run_dir,"gtsm_fine.mdu.template"), os.path.join(run_dir,"gtsm_fine.mdu"),keywords_MDU)
     
     keywords_EXT={'%METEOFILE_GLOB_U%':meteofile_u,'%METEOFILE_GLOB_V%':meteofile_v,'%METEOFILE_GLOB_P%':meteofile_p, '%METEOFILE_MSLCORR%':MSLcorrfile,'%METEOFILE_SLR%':SLRfile}
