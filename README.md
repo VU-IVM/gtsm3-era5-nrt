@@ -11,7 +11,7 @@ The GTSM-ERA5 reanalysis dataset covers the period 1979 to 2018. The length of 4
 ### Goal
 The goal of the project is to develop an automated workflow to produce an updated extreme sea levels dataset based on the extended ERA5 reanalysis.
 
-<img src="images/GTSM.png" | width="150">
+<img src="images/GTSM.png">
 
 ## General workflow
 
