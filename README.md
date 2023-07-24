@@ -1,4 +1,4 @@
-# gtsm3-era5-nrt
+# GTSM-ERA5-E: an extended reanalysis dataset
 
 
 ## About the project
