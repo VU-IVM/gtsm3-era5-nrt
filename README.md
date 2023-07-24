@@ -2,7 +2,6 @@
 
 
 ## About the project
-### Introduction
 Extreme sea levels, driven by the combination of mean sea level, tides storm surges and waves, can drive coastal flooding. Global reanalysis of extreme sea levels have improved our understanding of the driving mechanisms of coastal flooding at large-scales. The reanalysis datasets have been used to estimate exceedance probabilities, which are valuable input for coastal flood risk assessment that are used for both disaster risks reductions and climate change mitigation and adaptation.
 
 The Global Tide and Surge Model (GTSM) has been  is a depth-averaged hydrodynamic model, developed by Deltares, with global coverage. GTSM is based on Delft3D Flexible Mesh software and has a spatially varying resolution which increases towards the coast. GTSM can be used to simulate water levels and currents, that arise from tides and storm surges. The model has showed to be able to simulate tides and storm surge with enough accuracy [refs]. 
@@ -12,11 +11,11 @@ The GTSM-ERA5 reanalysis dataset covers the period 1979 to 2018. The length of 4
 ### Goal
 The goal of the project is to develop an automated workflow to produce an updated extreme sea levels dataset based on the extended ERA5 reanalysis.
 
-### General workflow
+## General workflow
 
 The workflow makes use of the Global Tide and Surge Model version 3.0 (GTSMv3.0) to simulated the water levels and currents resulting from tides and storm surges. The w y run GTSM on Snellius. GTSM is forced with ERA5. Code for GTSMv3.0 near-real time simulations with ERA5 on Snellius (for Sea Level Monitor). In this paper, we present an extension of the previous reanalysis dataset published in 2020 tha covered the period 1979-201810. We use the same modelling chain, which consists of GTSMv3.0 in combination with tidal and meteorological forcing as well as mean sea level that annually updated. Leveraging recent updates of ERA5, we extend the data from 1950 to present-day. To achieve this, there was a need to develop semi-automated and portable workflow that can easily be used to deploy Global Tide and Surge Model (GTSM) on a high-performance computing cluster. We will discuss the methods, validate the dataset and explain the data formats. 
 
-## File explanation
+### File explanation
 
 ### Bash scripts
 The bash scripts are used to define and run the several steps in the workflow. Each step consists of a separate bash script, which calls the relevant python script (or the Delft3D FM singularity container). The workflow.sh contains all steps and does not require specific user input, as the date is automatically retrieved (ensuring all input and output settings are correct).  The following bash scripts called by the workflow.sh script:
@@ -51,9 +50,8 @@ The Python scripts submitted by the bash script are used to download and preproc
   
 To be able to run the Python script you need to install conda and create an virtual environment using the environment.yml file (`conda env create --file environment.yml`). This installs the required packages, such as xarray, netCDF4, cartopy, etc. 
 
-## Non-automated data sources
-
-There are some data sources for which retrieval is not automated yet. This because there are not available in open repositories or have been produced specifically for this project.
+## Data sources
+We make use of various data sources. Whereas most of them are open and retrieval is automated and part of the scripts, there are some data sources for which retrieval is not automated yet. This because there are not available in open repositories or have been produced specifically for this project. These sources are desribed below. 
 
 ### Download delft3dfm container
 Download a delft3dfm container from `p:\d-hydro\delft3dfm_containers` to the `fm_container` folder in `path_dict.py`
