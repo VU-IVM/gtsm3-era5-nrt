@@ -13,7 +13,7 @@ The goal of the project is to develop an automated workflow to produce an update
 <img src="images/GTSM.png" width=60%>
 
 ## General workflow
-We make use of the same modelling approach as presented in Muis et al. (2020,2023)[^3][^4]. However, we developed semi-automated and portable workflow that can easily be used to deploy Global Tide and Surge Model (GTSM) on a high-performance computing cluster. In this case we made use of the [Dutch National Supercomputer Snellius](https://www.surf.nl/en/dutch-national-supercomputer-snellius) by SURF. Snellius makes use of SLURM for managing and scheduling Linux clusters. The workflow consists of a sequence of bash scripts with SLURM command that submits a python script for pre- or postprocessing or a hydrodynamic simmulations.
+We make use of the same modelling approach as presented in Muis et al. (2020,2023)[^3][^4]. We further develop a semi-automated and portable workflow that can easily be used to deploy Global Tide and Surge Model (GTSM) on a high-performance computing cluster. In this case we made use of the [Dutch National Supercomputer Snellius](https://www.surf.nl/en/dutch-national-supercomputer-snellius) by SURF. Snellius makes use of SLURM for managing and scheduling Linux clusters. The workflow consists of a sequence of bash scripts with SLURM command that submits a 1) python script for postprocessing or analysis or 2) a hydrodynamic simmulations.
 
 The figure below summarize the workflow. We provide more explanation on the different files below. 
 <img src="images/workflow.png" width=60%>
