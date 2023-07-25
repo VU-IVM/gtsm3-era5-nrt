@@ -4,9 +4,9 @@
 ## About the project
 Extreme sea levels, driven by the combination of mean sea level, tides storm surges and waves, can drive coastal flooding. Global reanalysis of extreme sea levels have improved our understanding of the driving mechanisms of coastal flooding at large-scales. The reanalysis datasets have been used to estimate exceedance probabilities, which are valuable input for coastal flood risk assessment that are used for both disaster risks reductions and climate change mitigation and adaptation.
 
-The Global Tide and Surge Model (GTSM) has been  is a depth-averaged hydrodynamic model, developed by Deltares, with global coverage. GTSM is based on Delft3D Flexible Mesh software and has a spatially varying resolution which increases towards the coast. GTSM can be used to simulate water levels and currents, that arise from tides and storm surges. The model has showed to be able to simulate tides and storm surge with enough accuracy [refs]. 
+The [Global Tide and Surge Model (GTSM)](https://publicwiki.deltares.nl/display/GTSM/Global+Tide+and+Surge+Model) has been  is a depth-averaged hydrodynamic model, developed by [Deltares](https://www.deltares.nl/), with global coverage. GTSM is based on [Delft3D Flexible Mesh software](https://www.deltares.nl/en/software-and-data/products/delft3d-fm-suite/modules/d-flow-flexible-mesh) and has a spatially varying resolution which increases towards the coast. GTSM can be used to simulate water levels and currents, that arise from tides and storm surges. The model has showed to be able to simulate tides and storm surge with enough accuracy when forced with wind and pressure fields from the ERA5 climate reanalysis[^1][^2][^3].  
 
-The GTSM-ERA5 reanalysis dataset covers the period 1979 to 2018. The length of 40 years is relatively short considering the large decadal variability25 and the large uncertainties associated with fitting an extreme value distribution26. Recently, the ERA5 climate reanalysis was extended backwards to 194027, seamlessly joining with the dataset covering 1979 to the present. The quality of the reanalysis was improved by additional conventional observations were assimilated, as well as improved use of early satellite data.  While trend analysis before the satellite-era should be carefully done28, the ERA5 extension allows to extend the storm surge reanalysis derived with GTSM. A dataset covering 80 years instead of 40 years may reduce the uncertainty of the extreme values fit and would allow to better quantity decadal variability. 
+Currently, the GTSM-ERA5 reanalysis dataset, available at the [C3S Climate Data Store](https://doi.org/10.24381/cds.a6d42d60), covers the period 1979 to 2018. Considering the large decadal variability and the large uncertainties associated with fitting an extreme value distribution, this is a relative short. However, recently the ERA5 climate reanalysis was extended backwards to 1950, seamlessly joining with the dataset covering 1979 to the present. This provides the opportunity the extent the existing dataset and increase the length from 40 years to 70 years. 
 
 ### Goal
 The goal of the project is to develop an automated workflow to produce an updated extreme sea levels dataset based on the extended ERA5 reanalysis.
@@ -79,3 +79,8 @@ Sanne Muis - sanne.muis@deltares.nl
 
 More on GTSM: https://publicwiki.deltares.nl/display/GTSM/Global+Tide+and+Surge+Model
 More on the Sea Level Monitor: xx
+
+[^1]: Muis, S., Verlaan, M., Winsemius, H. C., Aerts, J. C. J. H., & Ward, P. J. (2016). A global reanalysis of storm surge and extreme sea levels. Nature Communications, doi:10.1038/ncomms11969.
+[^2]: Dullaart, J. C., Muis, S., Bloemendaal, N., & Aerts, J. C. (2020). Advancing global storm surge modelling using the new ERA5 climate reanalysis. Climate Dynamics, doi:10.1007/s00382-019-05044-0
+[^3]: Muis, S., Apecechea, M. I., Dullaart, J., de Lima Rego, J., Madsen, K. S., Su, J., ... & Verlaan, M. (2020). A High-resolution global dataset of extreme sea levels, tides, and storm surges, including future projections. Frontiers in Marine Science, doi:10.3389/fmars.2020.00263
+
