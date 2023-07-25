@@ -16,7 +16,7 @@ The goal of the project is to develop an automated workflow to produce an update
 We make use of the same modelling approach as presented in Muis et al. (2020,2023)[^3][^4]. We further develop a semi-automated and portable workflow that can easily be used to deploy Global Tide and Surge Model (GTSM) on a high-performance computing cluster. In this case we made use of the [Dutch National Supercomputer Snellius](https://www.surf.nl/en/dutch-national-supercomputer-snellius) by SURF. Snellius makes use of SLURM for managing and scheduling Linux clusters. The workflow consists of a sequence of bash scripts with SLURM command that submits a 1) python script for postprocessing or analysis or 2) a hydrodynamic simmulations.
 
 The figure below summarize the workflow. We provide more explanation on the different files below. 
-<img src="images/workflow.png" width=60%>
+<img src="images/workflow.PNG" width=60%>
 
 ### Bash scripts
 The bash scripts are used to define and run the several steps in the workflow. Each step consists of a separate bash script, which calls the relevant python script (or the Delft3D FM singularity container). The workflow.sh contains all steps and does not require specific user input, as the date is automatically retrieved (ensuring all input and output settings are correct).  The following bash scripts called by the workflow.sh script:
