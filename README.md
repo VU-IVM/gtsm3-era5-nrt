@@ -1,23 +1,22 @@
 # GTSM-ERA5-E: an extended reanalysis dataset
 
-
 ## About the project
 Extreme sea levels, driven by the combination of mean sea level, tides storm surges and waves, can drive coastal flooding. Global reanalysis of extreme sea levels have improved our understanding of the driving mechanisms of coastal flooding at large-scales. The reanalysis datasets have been used to estimate exceedance probabilities, which are valuable input for coastal flood risk assessment that are used for both disaster risks reductions and climate change mitigation and adaptation.
 
 The [Global Tide and Surge Model (GTSM)](https://publicwiki.deltares.nl/display/GTSM/Global+Tide+and+Surge+Model) has been  is a depth-averaged hydrodynamic model, developed by [Deltares](https://www.deltares.nl/), with global coverage. GTSM is based on [Delft3D Flexible Mesh software](https://www.deltares.nl/en/software-and-data/products/delft3d-fm-suite/modules/d-flow-flexible-mesh) and has a spatially varying resolution which increases towards the coast. GTSM can be used to simulate water levels and currents, that arise from tides and storm surges. The model has showed to be able to simulate tides and storm surge with enough accuracy when forced with wind and pressure fields from the ERA5 climate reanalysis[^1][^2][^3].  
 
-Currently, the GTSM-ERA5 reanalysis dataset, available at the [C3S Climate Data Store](https://doi.org/10.24381/cds.a6d42d60), covers the period 1979 to 2018. Considering the large decadal variability and the large uncertainties associated with fitting an extreme value distribution, this is a relative short. However, recently the ERA5 climate reanalysis was extended backwards to 1950, seamlessly joining with the dataset covering 1979 to the present. This provides the opportunity the extent the existing dataset and increase the length from 40 years to 70 years. 
+Currently, the GTSM-ERA5 reanalysis dataset, available at the [C3S Climate Data Store](https://doi.org/10.24381/cds.a6d42d60), covers the period 1979 to 2018. Considering the large decadal variability and the large uncertainties associated with fitting an extreme value distribution, this is a relative short. However, recently the ERA5 climate reanalysis was extended backwards to 1950, seamlessly joining with the dataset covering 1979 to the present. This provides the opportunity the extent the existing extreme sea levels dataset and increase the length from 40 years to 70 years. 
 
 ### Goal
-The goal of the project is to develop an automated workflow to produce an updated extreme sea levels dataset based on the extended ERA5 reanalysis.
+The goal of the project is to develop an automated workflow to produce an updated extreme sea levels dataset based on the extended ERA5 reanalysis. In addition, we make the entire workflow and datasets openly available. 
 
 <img src="images/GTSM.png" width=60%>
 
 ## General workflow
+We make use of the same modelling approach as presented in Muis et al. (2020,2023)[^3][^4]. However, we developed semi-automated and portable workflow that can easily be used to deploy Global Tide and Surge Model (GTSM) on a high-performance computing cluster. In this case we made use of the [Dutch National Supercomputer Snellius](https://www.surf.nl/en/dutch-national-supercomputer-snellius) by SURF. Snellius makes use of SLURM for managing and scheduling Linux clusters. The workflow consists of a sequence of bash scripts with SLURM command that submits a python script for pre- or postprocessing or a hydrodynamic simmulations.
 
-The workflow makes use of the Global Tide and Surge Model version 3.0 (GTSMv3.0) to simulated the water levels and currents resulting from tides and storm surges. The w y run GTSM on Snellius. GTSM is forced with ERA5. Code for GTSMv3.0 near-real time simulations with ERA5 on Snellius (for Sea Level Monitor). In this paper, we present an extension of the previous reanalysis dataset published in 2020 tha covered the period 1979-201810. We use the same modelling chain, which consists of GTSMv3.0 in combination with tidal and meteorological forcing as well as mean sea level that annually updated. Leveraging recent updates of ERA5, we extend the data from 1950 to present-day. To achieve this, there was a need to develop semi-automated and portable workflow that can easily be used to deploy Global Tide and Surge Model (GTSM) on a high-performance computing cluster. We will discuss the methods, validate the dataset and explain the data formats. 
-
-### File explanation
+The figure below summarize the workflow. We provide more explanation on the different files below. 
+<img src="images/workflow.png" width=60%>
 
 ### Bash scripts
 The bash scripts are used to define and run the several steps in the workflow. Each step consists of a separate bash script, which calls the relevant python script (or the Delft3D FM singularity container). The workflow.sh contains all steps and does not require specific user input, as the date is automatically retrieved (ensuring all input and output settings are correct).  The following bash scripts called by the workflow.sh script:
@@ -83,4 +82,4 @@ More on the Sea Level Monitor: xx
 [^1]: Muis, S., Verlaan, M., Winsemius, H. C., Aerts, J. C. J. H., & Ward, P. J. (2016). A global reanalysis of storm surge and extreme sea levels. Nature Communications, doi:10.1038/ncomms11969.
 [^2]: Dullaart, J. C., Muis, S., Bloemendaal, N., & Aerts, J. C. (2020). Advancing global storm surge modelling using the new ERA5 climate reanalysis. Climate Dynamics, doi:10.1007/s00382-019-05044-0
 [^3]: Muis, S., Apecechea, M. I., Dullaart, J., de Lima Rego, J., Madsen, K. S., Su, J., ... & Verlaan, M. (2020). A High-resolution global dataset of extreme sea levels, tides, and storm surges, including future projections. Frontiers in Marine Science, doi:10.3389/fmars.2020.00263
-
+[^4]: Muis, S. et al (2023). Global projections of storm surges using high-resolution CMIP6 climate models. In review.
