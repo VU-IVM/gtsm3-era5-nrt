@@ -13,8 +13,9 @@ path_dict = {'git_checkout': base_dir+'/00_scripts_git',
              'tides_CDS':    base_dir+'/03_tides_CDS', 
              'meteo_msl':    base_dir+'/04_meteo_msl',
              'meteo_SLR':    base_dir+'/05_meteo_SLR',
-             'modelfiles':   base_dir+'/06_model_runs/model_input_files',
-             'modelruns':    base_dir+'/06_model_runs/slr_tide_surge_runs',
+             'modelfiles':   base_dir+'/06_model_runs/01_model_input_files',
+             'modelruns':    base_dir+'/06_model_runs/02_slr_tide_surge_runs',
+             'postproc':     base_dir+'/06_model_runs/03_postprocessing', 
              'fm_container': base_dir+'/99_delft3dfm_containers/delft3dfm_2022.04',
              }
 
