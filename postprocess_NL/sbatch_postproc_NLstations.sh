@@ -1,8 +1,8 @@
 #!/bin/bash
-#SBATCH -t 2:00:00
-#SBATCH -N 1
+#SBATCH -t 1:00:00
+#SBATCH -n 12
 #SBATCH -p thin
-#SBATCH --job-name=p4_sbatch_postprocess
+#SBATCH --job-name=postprocess_NL
 
 # load modules
 module purge
@@ -13,8 +13,8 @@ scenario=era5
 # yearly runs for 2019, 2020 and 2021
 for yr in {1952..1978..1}; do  
 (
-  conda run -n gtsm3-era5-nrt-slm python 01_postprocess_NL_yearly_stats.py $yr
-  conda run -n gtsm3-era5-nrt-slm python 02_postprocess_NL_yearly_TS.py $yr  
+  conda run -n gtsm3-era5-nrt-slm python step1_postprocess_NL_yearly_stats.py $yr
+  conda run -n gtsm3-era5-nrt-slm python step2_postprocess_NL_yearly_TS.py $yr  
 ) &
 done
 wait
