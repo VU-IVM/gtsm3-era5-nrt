@@ -192,7 +192,9 @@ def raw2nc(year, mnth, scenario):
                 }
     print(raw_data)
     inpath = raw_data[scenario]['fpath']
-    outpath = os.path.join(os.path.dirname(mpath), raw_data[scenario]['opath']) 
+    
+    ppath = path_dict['postproc']
+    outpath = os.path.join(ppath, raw_data[scenario]['opath']) 
     tpath = path_dict['tides_CDS']
     wpath = os.path.join(outpath, 'waterlevel')
     spath = os.path.join(outpath, 'surge')  
