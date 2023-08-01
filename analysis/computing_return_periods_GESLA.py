@@ -22,6 +22,7 @@ import multiprocessing
 from joblib import Parallel, delayed
 
 def read_GESLA(idir):
+  # source: https://gesla787883612.wordpress.com/downloads/ [Aug 2023] 
   meta_file = os.path.join(idir,"GESLA3_ALL.csv")
   data_path = os.path.join(idir,"GESLA3.0_ALL//")
   filenames = os.listdir(data_path)
@@ -95,11 +96,14 @@ if __name__ == "__main__":
     yearmax = 2022
     record_length = 30 
     prc_data_missing = 0.75 # max 25% missing data per year
+    prcts = [0.90,0.95,0.99,0.999]
+    odir = 'output'
     # Parallel processing
     cpu_num = multiprocessing.cpu_count()
     print(cpu_num)
     # Load and process GESLA timeseries  
     ofile = 'ds_gesla_%s_%s_allstations_%syr_max%sprt_missing.nc' % (str(yearmin),str(yearmax),str(record_length),str((int((1-prc_data_missing)*100))))
+    ofile = os.path.join(odir, ofile)
     print('--------  ofile:', ofile)
     if os.path.isfile(ofile)==True:  
       ds_gesla = xr.open_dataset(ofile)
@@ -109,35 +113,35 @@ if __name__ == "__main__":
         ds_gesla.to_netcdf(ofile)
     ds_gesla = detrend_GESLA(ds_gesla)
     # Compute descriptive statistics
-    prcts = [0.90,0.95,0.99,0.999]
     ds_stats = stats_GESLA(ds_gesla, prcts)
     # Extreme value analysis
     data = Parallel(n_jobs=cpu_num)(delayed(compute_eva(ds_gesla10.sea_level_detrended.isel(stations=istation) for istation in range(ds_gesla10.dims['stations'])])
     ds_eva = xr.concat(data, dim='stations')  
     # Plot precentiles and return periods  
     if plot==True:
-    # Colormap settings
-    cmap = mpl.colormaps['viridis'].resampled(20)
-    vrange=[0,2]
-    # Plot
-    fig = plt.figure(figsize=(26,20))
-    axes_class = (GeoAxes, dict(projection=crt.crs.Robinson()))
-    axs = AxesGrid(fig, 111, axes_class=axes_class,
-               nrows_ncols=(2, 2),
-               share_all=True,
-               axes_pad=1.7,
-               cbar_location='right',
-               cbar_mode='each',
-               cbar_size='3%',
-               cbar_pad=1.0,
-               label_mode='keep')
-    for ii in range(0,4):
-        ax = global_map(axs[ii])
-        ds = ds_prctiles.sel(quantile=prcts[ii])
-        bs = ax.scatter(x=ds['station_x_coordinate'],y=ds['station_y_coordinate'],
-                        s=75,c=ds,transform=crt.crs.PlateCarree(),
-                       cmap=cmap, vmin=vrange[0], vmax=vrange[1])
-        cbar = ax.cax.colorbar(bs)
-    fig.tight_layout()
-    mpl.pyplot.show()
+      # Colormap settings
+      cmap = mpl.colormaps['viridis'].resampled(20)
+      vrange=[0,2]
+      # Plot
+      fig = plt.figure(figsize=(26,20))
+      axes_class = (GeoAxes, dict(projection=crt.crs.Robinson()))
+      axs = AxesGrid(fig, 111, axes_class=axes_class,
+                 nrows_ncols=(2, 2),
+                 share_all=True,
+                 axes_pad=1.7,
+                 cbar_location='right',
+                 cbar_mode='each',
+                 cbar_size='3%',
+                 cbar_pad=1.0,
+                 label_mode='keep')
+      for ii in range(0,4):
+          ax = global_map(axs[ii])
+          ds = ds_prctiles.sel(quantile=prcts[ii])
+          bs = ax.scatter(x=ds['station_x_coordinate'],y=ds['station_y_coordinate'],
+                          s=75,c=ds,transform=crt.crs.PlateCarree(),
+                         cmap=cmap, vmin=vrange[0], vmax=vrange[1])
+          cbar = ax.cax.colorbar(bs)
+      fig.tight_layout()
+      figname = os.path.join(odir, 'figs', 'percentiles.png')
+      mpl.savefig(figname)
     
