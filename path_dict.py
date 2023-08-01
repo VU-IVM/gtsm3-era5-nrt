@@ -17,6 +17,7 @@ path_dict = {'git_checkout': base_dir+'/00_scripts_git',
              'modelruns':    base_dir+'/06_model_runs/02_slr_tide_surge_runs',
              'postproc':     base_dir+'/06_model_runs/03_postprocessing', 
              'fm_container': base_dir+'/99_delft3dfm_containers/delft3dfm_2022.04',
+             'gesla' :       base_dir+'/data/GESLA',
              }
 
 if __name__ == "__main__":
