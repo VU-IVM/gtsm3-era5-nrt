@@ -29,18 +29,25 @@ file_nc = os.path.join(f'{dir_data}/era5_reanalysis_waterlevel_{year}_NLstations
 ds_wl = xr.open_dataset(file_nc); 
     
 # get timeseries of surge levels
-#file_nc = os.path.join(f'{dir_data}/era5_reanalysis_surge_{year}_NLstations.nc')
-#ds_surge = xr.open_dataset(file_nc); 
+file_nc = os.path.join(f'{dir_data}/era5_reanalysis_surge_{year}_NLstations.nc')
+ds_surge = xr.open_dataset(file_nc); 
 
-plt.figure(figsize=(20,6))
-
+# plot total water level and surge per station
 for ii in range(6):
-    ds_wl_sel = ds_wl.sel(time=slice('1951-01-01','1951-01-31'),stations=station_list[ii])
-    plt.plot(ds_wl_sel.time,ds_wl_sel.waterlevel)
+    fig = plt.gcf()
+    fig.set_size_inches(15, 7)
 
-plt.ylabel('Water level [m]')
-plt.xticks(rotation = 45) 
+    ds_wl_sel = ds_wl.sel(time=slice(f'{year}-01-15',f'{year}-01-31'),stations=station_list[ii])
+    plt.plot(ds_wl_sel.time,ds_wl_sel.waterlevel,label='Total water level')
 
-plt.savefig(f'{dir_output}/era5_reanalysis_waterlevel_{year}_TS_plot.png',bbox_inches='tight')
-    
+    ds_surge_sel = ds_surge.sel(time=slice(f'{year}-01-15',f'{year}-01-31'),stations=station_list[ii])
+    plt.plot(ds_surge_sel.time,ds_surge_sel.surge,label='Surge')
 
+    plt.xlim(ds_wl_sel.time[0],ds_wl_sel.time[-1])
+    plt.ylabel('Water level [m]')
+    plt.xticks(rotation = 45) 
+    plt.legend(loc='lower right')
+    plt.title(f'Total water level at {station_list[ii]}')
+    fig.subplots_adjust(bottom=0.15,top=0.9)
+    plt.savefig(f'{dir_output}/era5_reanalysis_levels_{year}_TS_{station_list[ii]}.png',bbox_inches='tight')
+    plt.clf()
