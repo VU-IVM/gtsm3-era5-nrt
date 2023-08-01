@@ -199,7 +199,7 @@ def raw2nc(year, mnth, scenario):
     wpath = os.path.join(outpath, 'waterlevel')
     spath = os.path.join(outpath, 'surge')  
     
-    outpath_stats = os.path.join(os.path.dirname(mpath), raw_data[scenario]['opath_stats'])
+    outpath_stats = os.path.join(ppath, raw_data[scenario]['opath_stats'])
     wpath_stats = os.path.join(outpath_stats, 'waterlevel')
     spath_stats = os.path.join(outpath_stats, 'surge') 
     
