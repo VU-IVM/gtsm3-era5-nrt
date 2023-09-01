@@ -15,7 +15,11 @@ def download_tides(yr, mnth):
     # Monthly download
     print ("######### GTSM-tides from CDS  #########")
     print (f'getting data for {date_str}')
-    experiment = 'historical' #historical/future
+    if yr>2014:
+      experiment = 'future'
+    else:
+      experiment = 'historical' 
+      
     path_ncfile = os.path.join(outdir, f'{experiment}_tide_{yr}_{mnth:02}_v1.nc')
     if os.path.isfile(path_ncfile):
         print('already downloaded')
