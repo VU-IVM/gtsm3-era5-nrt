@@ -203,7 +203,10 @@ def raw2nc(year, mnth, scenario):
     wpath_stats = os.path.join(outpath_stats, 'waterlevel')
     spath_stats = os.path.join(outpath_stats, 'surge') 
     
-    texp = 'historical'
+    if year>2014:
+      texp = 'future'
+    else:
+      texp = 'historical'
     exp = 'reanalysis'
     
     for i in [tpath, wpath, spath]:
