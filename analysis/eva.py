@@ -69,8 +69,9 @@ def detrend(ds_gesla: xr.DataArray, plot = False):
 
 def compute_eva(var,istation):
     var = var.to_dataframe().loc[:, 'sea_level_detrended'].dropna()
-    probY, potmodel = peak_over_threshold(var)
-    potmodel = potmodel.append(pd.DataFrame([istation],index=['station'],columns=potmodel.columns))
+    probY, potmodel = peak_over_threshold(var)    
+    tmp2 = pd.DataFrame([istation],index=['station'],columns=potmodel.columns)
+    potmodel = pd.concat([potmodel,tmp2])    
     potmodel = potmodel.transpose().set_index('station')
     return potmodel
 
