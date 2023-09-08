@@ -46,7 +46,7 @@ def compute_rv_eva(yr_start,yr_end):
 
     prcts = [0.90,0.95,0.99,0.999]
     rps =[2,10,50,100]    
-    cpu_num=10
+    cpu_num=15
     
     # location of yearly timeseries for all stations
     sys.path.append("..")
@@ -67,7 +67,7 @@ def compute_rv_eva(yr_start,yr_end):
     del ds, ds2 
 	
     # Loop over chunks of 1000 stations
-    for bb in range(1,3):
+    for bb in range(1,44):
 
         #open and merge data for selected stations
         for year in range(settings['yearmin'],settings['yearmax']+1):
@@ -97,7 +97,7 @@ def compute_rv_eva(yr_start,yr_end):
         # output file for TS
         ofile = 'ds_GTSM-ERA5_%s_%s_stations_%i-%i.nc' % (str(settings['yearmin']),str(settings['yearmax']),stationlist.iloc[0],stationlist.iloc[-1])
         ofile = Path(os.path.join(dir_out, ofile))
-        ds_gtsm.to_netcdf(ofile) #save full TS for selected stations
+        #ds_gtsm.to_netcdf(ofile) #save full TS for selected stations
 
         # detrend
         ds_gtsm['sea_level'] = ds_gtsm['waterlevel']
