@@ -8,7 +8,7 @@ module purge
 module load 2021
 
 # loop over months and years
-for yr in {1979..2018..1}; do
+for yr in {1985..2014..1}; do
 (
   echo $yr 
   conda run -n gtsm3-era5-nrt-slm python p00_download_GTSM_waterlevels.py $yr 

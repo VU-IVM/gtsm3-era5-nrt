@@ -11,7 +11,7 @@ from path_dict import path_dict
 def download_gtsm(yr):
     yr=int(yr)
     outdir = path_dict['postproc']
-    outdir = os.path.join(outdir,'timeseries-GTSM-ERA5-hourly-1979-2018','waterlevel')
+    outdir = os.path.join(outdir,'timeseries-GTSM-ERA5-10min-1979-2018','waterlevel')
 
     # yearly download
     print ("######### GTSM data from CDS #########")
@@ -20,19 +20,19 @@ def download_gtsm(yr):
     # I/O - download the data
     print (f'getting data for {yr}')
     targetfile = os.path.join(outdir,f"era5_reanalysis_waterlevel_{yr}.zip")
-#    if os.path.exists(targetfile):
-#        print('already downloaded')
-#        pass
-#    if os.path.isfile(targetfile)==False: 
-#        c = cdsapi.Client()
-#        c.retrieve('sis-water-level-change-timeseries-cmip6',
-#            {'experiment':'reanalysis',
-#            'format':'zip',
-#            'variable':'total_water_level',
-#            'temporal_aggregation': 'hourly',
-#            'year':yr,
-#            'month':['01','02','03','04','05','06','07','08','09','10','11','12'],
-#            },targetfile)
+    if os.path.exists(targetfile):
+        print('already downloaded')
+        pass
+    if os.path.isfile(targetfile)==False: 
+        c = cdsapi.Client()
+        c.retrieve('sis-water-level-change-timeseries-cmip6',
+            {'experiment':'reanalysis',
+            'format':'zip',
+            'variable':'total_water_level',
+            'temporal_aggregation': '10_min',
+            'year':yr,
+            'month':['01','02','03','04','05','06','07','08','09','10','11','12'],
+            },targetfile)
         
     # unzip and remove zipfile
     with zipfile.ZipFile(targetfile,"r") as zip_ref:

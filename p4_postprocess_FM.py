@@ -1,6 +1,7 @@
-# Author: Robyn S. Gwee, Sanne Muis
+# Author: Robyn S. Gwee, Sanne Muis, Natalia Aleksandrova
 # Contact: robyn.gwee@deltares.nl
-# Date created: Mon Feb 22 17:25:23 2021
+# Date created: Mon Feb 22 2021
+# Date updated: Thu Sep 14 2023
 # Remarks: raw2nc 
 
 import os
@@ -146,19 +147,18 @@ def attrib(dataset):
     
     dataset.attrs={'Conventions':'CF-1.6', 
                   'featureType': 'timeSeries', 
-                  'id': 'GTSMv3_tides_totalwaterlevel', 
+                  'id': 'GTSMv3_totalwaterlevels', 
                   'naming_authority': 'https://deltares.nl/en', 
                   'Metadata_Conventions': 'Unidata Dataset Discovery v1.0', 
                   'title': '10-minute timeseries of total water levels', 
-                  'summary': 'This dataset has been produced with the Global Tide and \
-                              Surge Model (GTSM) version 3.0. GTSM was forced with \
-                              wind speed and pressure fields from ERA5 climate reanalysis', 
+                  'summary': 'This dataset has been produced with the Global Tide and Surge Model (GTSM) version 3.0. GTSM was forced with wind speed and pressure fields from ERA5 climate reanalysis', 
                   'date_created': str(datetime.utcnow()) + ' UTC', 
-                  'project': 'GTSMip and C3S_435_Lot8 Deltares', 
-                  'acknowledgment': 'The development of this dataset was financed with Deltares Strategic Research Program. Additional funding was received by Contract C3S_435_Lot8 Deltares', 
-                  'contact': 'kun.yan@deltares.nl',
+                  'date_modified': '', 
+                  'project': 'Deltares Strategic Research Program', 
+                  'acknowledgment': 'The development of this dataset was financed with Deltares Strategic Research Program.', 
+                  'contact': '',
                   'license': 'Copernicus Products License', 
-                  'history': '', 
+                  'history': 'This is version 1 of the dataset', 
                   'institution': 'Deltares', 
                   'sea_name': 'global', 
                   'source': 'GTSMv3 forced with ERA5 climate reanalysis',
@@ -224,9 +224,9 @@ def raw2nc(year, mnth, scenario):
     print('Processing {}'.format(date.strftime('%Y-%m')))
     mth = ds.sel(time='{}-{}'.format(date.strftime('%Y'), date.strftime('%m')))
     
-    tfile = os.path.join(tpath,'{}_tide_{}_{}_v1.nc'.format(texp,date.strftime('%Y'), date.strftime('%m')))   #TODO: check writing of this output
-    sfile = os.path.join(spath,'{}_{}_surge_{}_{}_v1.nc'.format(raw_data[scenario]['fname'].split('_')[0],exp,date.strftime('%Y'), date.strftime('%m')))
-    wfile = os.path.join(wpath,'{}_{}_waterlevel_{}_{}_v1.nc'.format(raw_data[scenario]['fname'].split('_')[0],exp,date.strftime('%Y'),date.strftime('%m')))
+    tfile = os.path.join(tpath,'{}_tide_{}_{}_v1.nc'.format(texp,date.strftime('%Y'), date.strftime('%m')))   
+    sfile = os.path.join(spath,'{}_surge_10min_{}_{}_v1.nc'.format(exp,date.strftime('%Y'), date.strftime('%m')))
+    wfile = os.path.join(wpath,'{}_waterlevel_10min_{}_{}_v1.nc'.format(exp,date.strftime('%Y'),date.strftime('%m')))
     
     if not os.path.exists(wfile):
         print('writing: ', wfile)
