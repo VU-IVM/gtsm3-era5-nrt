@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH -t 4:00:00
 #SBATCH -N 1
-#SBATCH -p thin
+#SBATCH -p rome
 
 # Make sure the jupyter command is available, either by loading the appropriate modules, sourcing your own virtual environment, etc.
 module load 2021
