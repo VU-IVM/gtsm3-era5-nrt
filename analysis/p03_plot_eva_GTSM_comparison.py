@@ -187,7 +187,7 @@ if __name__ == "__main__":
         # smaller plot with just two panels
         for rp in [1,10,100]:
             rp_all = np.vstack((np.array(ds_gtsm_eva1[f'{str(rp)}_bf']),np.array(ds_gtsm_eva2[f'{str(rp)}_bf']),np.array(ds_gtsm_eva3[f'{str(rp)}_bf'])))
-            vrange1=[0,5]; vrange2=[-0.5,0.5];   
+            vrange1=[0,5]; vrange2=[-0.5,0.5];  
             fig = plt.figure(figsize=(12,8))
             axes_class = (GeoAxes, dict(projection=crt.crs.Robinson()))
             axs = AxesGrid(fig, 111, axes_class=axes_class, nrows_ncols=(2, 1), share_all=True, axes_pad=1.0,cbar_location='right',cbar_mode='each',cbar_size='3%',cbar_pad=0.3, label_mode='keep')
@@ -203,6 +203,46 @@ if __name__ == "__main__":
             ax.set_title(f"Difference in extreme values with {rp}-year return period \n between {settings['yearmin3']}-{settings['yearmax3']} vs. {settings['yearmin2']}-{settings['yearmax2']} dataset",fontsize=14)        
             figname = f'EVA_map_RP{rp}_comparison_between_periods_v5.png' 
             fig.savefig(f'{dir_eva}/{figname}')
+
+        # combined plot with 95th perc and 100 year return value
+        for rp in [100]:
+            rp_all = np.vstack((np.array(ds_gtsm_eva1[f'{str(rp)}_bf']),np.array(ds_gtsm_eva2[f'{str(rp)}_bf']),np.array(ds_gtsm_eva3[f'{str(rp)}_bf'])))
+            
+            mpl.rcParams.update({'font.size': 18})
+            csize = 15
+            fig = plt.figure(figsize=(20,15))
+            axes_class = (GeoAxes, dict(projection=crt.crs.Robinson()))
+            axs = AxesGrid(fig, 111, axes_class=axes_class, nrows_ncols=(2, 2), share_all=True, axes_pad=1.6,cbar_location='bottom',cbar_mode='each',cbar_size='8%',cbar_pad=0.4, label_mode='keep')
+    
+            # plot q95 and RP100 map
+            ax = global_map(axs[0])
+            bs = ax.scatter(x=coord_x,y=coord_y,s=csize,c=quan95[2,:],transform=crt.crs.PlateCarree(),cmap=cmap3, vmin=0, vmax=5);
+            cbar = ax.cax.colorbar(bs); cbar.set_label('Still water level [m]',fontsize=20)
+            ax.set_title('95th percentile values based on GTSM-ERA5-E',fontsize=22);
+
+            ax = global_map(axs[1])
+            bs = ax.scatter(x=coord_x,y=coord_y,s=csize,c=rp_all[2,:],transform=crt.crs.PlateCarree(),cmap=cmap3, vmin=0, vmax=8); 
+            cbar = ax.cax.colorbar(bs); cbar.set_label('Still water level [m]',fontsize=20)
+            ax.set_title('100-year return values based on GTSM-ERA5-E',fontsize=22);
+
+            # plot q95 and RP100 bias
+            ax = global_map(axs[2])
+            bs =ax.scatter(x=coord_x,y=coord_y,s=csize,c=quan95[2,:]-quan95[1,:],cmap=cmap4,transform=crt.crs.PlateCarree(),vmin=-0.03, vmax=0.03);
+            cbar = ax.cax.colorbar(bs); cbar.set_label('Still water level difference [m]',fontsize=20)
+            ax.set_title('Difference in 95th percentile values \n GTSM-ERA5-E (1950-2022) vs. GTSM-ERA5 (1979-2018)',fontsize=22);
+
+            ax = global_map(axs[3])
+            bs =ax.scatter(x=coord_x,y=coord_y,s=csize,c=rp_all[2,:]-rp_all[1,:],cmap=cmap4,transform=crt.crs.PlateCarree(),vmin=-0.5, vmax=0.5); #
+            cbar = ax.cax.colorbar(bs); cbar.set_label('Still water level difference [m]',fontsize=20); 
+            ax.set_title('Difference in 100-year return values \n GTSM-ERA5-E (1950-2022) vs. GTSM-ERA5 (1979-2018)',fontsize=22);
+            plt.tight_layout()   
+
+            figname = 'Map_comparison_model_GTSM-ERA5-E_vs_GTSM-ERA5.png'  
+            fig.savefig(f'{dir_eva}/{figname}')
+            
+
+    
+
 
     
 
@@ -269,93 +309,180 @@ if __name__ == "__main__":
         ds_gtsm = ds_gtsm.chunk({"time": -1, "stations": "auto"})
         ds_gtsm.load()
 
-    vrange1=[-0.5,0.5]; vrange2=[0,0.02]; 
-    cmap = mpl.colormaps['seismic']#.resampled(20)
+        vrange1=[-0.5,0.5]; vrange2=[0,0.02]; 
+        cmap = mpl.colormaps['seismic']#.resampled(20)
 
-    ds_gtsm_eva2 = ds_gtsm_eva2.reset_index()
-    ds_gtsm_eva3 = ds_gtsm_eva3.reset_index()
+        ds_gtsm_eva2 = ds_gtsm_eva2.reset_index()
+        ds_gtsm_eva3 = ds_gtsm_eva3.reset_index()
+
+        overview_location_plot = 0
+        comparison_location_plot = 1
     
-    # make overview plots per location
-    for ss in range(0,len(ids)):
+    if overview_location_plot:
+        # make overview plots per location
+        for ss in range(0,len(ids)):
+            
+            st_id = ids[ss]
+            cityname = citynames[ss]
+            if stations[st_id] not in ds_gtsm['stations'].values:
+                continue
+            
+            # prepare EVA outputs
+            var = ds_gtsm.sea_level_detrended.sel(stations=stations[st_id]).to_dataframe().loc[:, 'sea_level_detrended'].dropna()
+            varth = var.quantile(0.995); 
+            model = EVA(var); del var
+            model.get_extremes("POT", threshold=varth, r="72H");  del varth
+            model.fit_model(distribution='genpareto',model='MLE')
+
+            var = ds_gtsm.sea_level_detrended.sel(stations=stations[st_id],time=slice("1979-01-01", "2019-01-01")).to_dataframe().loc[:, 'sea_level_detrended'].dropna()
+            varth = var.quantile(0.995)
+            model_short = EVA(var); del var
+            model_short.get_extremes("POT", threshold=varth, r="72H"); del varth
+            model_short.fit_model(distribution='genpareto',model='MLE')
+
+            # get pandas with EVA results for plotting
+            model_summary = model.get_summary(return_period=[1,2,5,10,50,100,500,1000],alpha=0.95)
+            model_short_summary = model_short.get_summary(return_period=[1,2,5,10,50,100,500,1000],alpha=0.95)
+
+            # plot
+            fig = plt.figure(figsize=(20,20))
+            ax0 = plt.subplot2grid((4, 2), (0, 0), colspan=1, projection=crt.crs.Robinson())
+            ax1 = plt.subplot2grid((4, 2), (0, 1), colspan=1, rowspan=1)
+            ax2 = plt.subplot2grid((4, 2), (1, 0), colspan=1, rowspan=1)
+            ax3 = plt.subplot2grid((4, 2), (1, 1), colspan=1, rowspan=1,sharex=ax2,sharey=ax2)
+            ax4 = plt.subplot2grid((4, 2), (2, 0), colspan=2, rowspan=1)
+            ax5 = plt.subplot2grid((4, 2), (3, 0), colspan=2, rowspan=1)
+
+        #    plot location on the map
+            ax0 = global_map(ax0)
+            bs0 = ax0.scatter(x=coord_x,y=coord_y,s=15,c=rp_all[2,:]-rp_all[1,:],transform=crt.crs.PlateCarree(),cmap=cmap, vmin=vrange1[0], vmax=vrange1[1]); 
+            bs = ax0.scatter(x=coord_x[st_id],y=coord_y[st_id],marker ='o',s=200,transform=crt.crs.PlateCarree(),facecolors='none',edgecolors='red',linewidth=3); 
+            ax0.title.set_text(f"Location {int(stations[st_id])}")
+            
+        #   plot return values on a log plot per dataset
+            model.plot_return_values(return_period=[1, 2, 5, 10, 25, 50, 100,500,1000],alpha=0.95,ax=ax2)
+            model_short.plot_return_values(return_period=[1, 2, 5, 10, 25, 50, 100,500,1000],alpha=0.95,ax=ax3)
+            ax2.set_ylabel('Still water level [m]'); ax3.set_ylabel('Still water level [m]')
+            ax2.title.set_text(f"Return values based on 1950-2022 dataset"); ax3.title.set_text(f"Return values based on 1979-2018 dataset"); 
+
+            # plot EVA confidence intervals together for comparison
+            ax1.semilogx()
+            ax1.grid(True, which="both")
+            ax1.xaxis.set_major_formatter(plt.FuncFormatter(lambda x, _: f"{x:,.0f}"))
+            
+            for col in ["lower ci", "upper ci"]:
+                ax1.plot(model_summary.index.values,model_summary.loc[:, col].values,color="#5199FF",lw=1,ls="--",zorder=14)
+                ax1.plot(model_short_summary.index.values,model_short_summary.loc[:, col].values,color="#ff6e51",lw=1,ls="--",zorder=15)
+            ax1.fill_between(model_summary.index.values,model_summary.loc[:, "lower ci"].values,model_summary.loc[:, "upper ci"].values, facecolor="#5199FF",edgecolor="None",alpha=0.25,zorder=9)
+            ax1.fill_between(model_short_summary.index.values,model_short_summary.loc[:, "lower ci"].values,model_short_summary.loc[:, "upper ci"].values, facecolor="#ff6e51",edgecolor="None",alpha=0.25,zorder=10)
+            ax1.plot(model_summary.index.values,model_summary.loc[:, "return value"].values,color="#285fad",lw=2,ls="-",zorder=24,label='Based on 1950-2022 dataset')
+            ax1.plot(model_short_summary.index.values,model_short_summary.loc[:, "return value"].values,color="#b8391f",lw=2,ls="-",zorder=25,label='Based on 1979-2018 dataset')
+            ax1.set_xlabel("Return period")
+            ax1.set_ylabel("Still water level [m]")
+            ax1.legend(loc="upper left")
+            ax1.title.set_text(f"Effect of timeseries length on modelled return values")
+
+            # plot timeseries
+            ts = ax4.plot(ds_gtsm.sel(stations=stations[st_id])['time'].values,ds_gtsm.sel(stations=stations[st_id])['sea_level_detrended'].values);
+            ax4.set_ylabel('Still water level [m]')
+            ax4.grid(); ax4.title.set_text('Full timeseries')
+
+            # plot zoomed in timeseries
+            peak_id = np.nanargmax(ds_gtsm.sel(stations=stations[st_id])['sea_level_detrended'].values)
+            peak_time = ds_gtsm['time'].values[peak_id]
+            time1 = peak_time - pd.DateOffset(days=3)
+            time2 = peak_time + pd.DateOffset(days=3)
+            ts = ax5.plot(ds_gtsm.sel(stations=stations[st_id]).sel(time=slice(time1,time2))['time'].values,ds_gtsm.sel(stations=stations[st_id]).sel(time=slice(time1,time2))['sea_level_detrended'].values,'bo--');
+            ax5.set_ylabel('Still water level [m]')
+            ax5.grid(); ax5.title.set_text('Timeseries around peak value')
+            
+            figname = f'EVA_station_{str(int(stations[st_id])).zfill(5)}_RV_1950-2022_vs_1979-2018_{cityname}.png' 
+            fig.savefig(f'{dir_eva}/timeseries_plots/{figname}')
+            plt.clf()
+
+    if comparison_location_plot:
+        # make comparison plot
+
+        fig = plt.figure(figsize=(20,17))
+        axs=[]
+        axs.append(plt.subplot2grid((3, 3), (0, 0), colspan=1,rowspan=1))
+        axs.append(plt.subplot2grid((3, 3), (0, 1), colspan=1, rowspan=1,sharex=axs[0]))
+        axs.append(plt.subplot2grid((3, 3), (0, 2), colspan=1, rowspan=1,sharex=axs[0]))
+        axs.append(plt.subplot2grid((3, 3), (1, 0), colspan=1, rowspan=1,sharex=axs[0]))
+        axs.append(plt.subplot2grid((3, 3), (1, 1), colspan=1, rowspan=1,projection=crt.crs.Robinson()))
+        axs.append(plt.subplot2grid((3, 3), (1, 2), colspan=1, rowspan=1,sharex=axs[0]))
+        axs.append(plt.subplot2grid((3, 3), (2, 0), colspan=1, rowspan=1,sharex=axs[0]))
+        axs.append(plt.subplot2grid((3, 3), (2, 1), colspan=1, rowspan=1,sharex=axs[0]))
+        axs.append(plt.subplot2grid((3, 3), (2, 2), colspan=1, rowspan=1,sharex=axs[0]))
+
+        cities = ['New York, USA','Lerwick, UK','IJmuiden, NL','Houston, USA','Aburatsu, Japan','Buenos Aires, Argentina','Rio de Janeiro, Brazil','Mombasa, Kenya']
+
+        #add global map
+        rp_diff = np.array(ds_gtsm_eva3['100_bf']) - np.array(ds_gtsm_eva2['100_bf'])
+        axs[4] = global_map(axs[4])
+        bs0 = axs[4].scatter(x=coord_x,y=coord_y,s=15,c=rp_diff,transform=crt.crs.PlateCarree(),cmap=cmap, vmin=vrange1[0], vmax=vrange1[1]); 
+        axs[4].title.set_text(f"Difference in water level \n 100-year return values")
+        cbar = plt.colorbar(bs0,ax=axs[4],orientation='horizontal',aspect=30); cbar.set_label('Still water level difference [m]')
+
+        for cc in range(0,len(cities)):
+            cname = cities[cc]
+
+            if cc<4:
+                ax = axs[cc]
+            else:
+                ax = axs[cc+1]
+
+            st_id = ids[citynames.index(cname)]
+
+            if stations[st_id] not in ds_gtsm['stations'].values:
+                continue
+
+            # plot location on the map
+            bs = axs[4].scatter(x=coord_x[st_id],y=coord_y[st_id],marker ='o',s=150,transform=crt.crs.PlateCarree(),facecolors='none',edgecolors='red',linewidth=3); 
+            
+            # prepare EVA outputs
+            var = ds_gtsm.sea_level_detrended.sel(stations=stations[st_id]).to_dataframe().loc[:, 'sea_level_detrended'].dropna()
+            varth = var.quantile(0.99); 
+            model = EVA(var); del var
+            model.get_extremes("POT", threshold=varth, r="72H");  del varth
+            model.fit_model(distribution='genpareto',model='MLE')
+
+            var = ds_gtsm.sea_level_detrended.sel(stations=stations[st_id],time=slice("1979-01-01", "2019-01-01")).to_dataframe().loc[:, 'sea_level_detrended'].dropna()
+            varth = var.quantile(0.99)
+            model_short = EVA(var); del var
+            model_short.get_extremes("POT", threshold=varth, r="72H"); del varth
+            model_short.fit_model(distribution='genpareto',model='MLE')
+
+            # get pandas with EVA results for plotting
+            model_summary = model.get_summary(return_period=[1,2,5,10,50,100,500,1000],alpha=0.95)
+            model_short_summary = model_short.get_summary(return_period=[1,2,5,10,50,100,500,1000],alpha=0.95)
+
+            # plot EVA confidence intervals together for comparison
+            ax.semilogx()
+            ax.grid(True, which="both",color='darkgrey')
+            ax.xaxis.set_major_formatter(plt.FuncFormatter(lambda x, _: f"{x:,.0f}"))
+            
+            for col in ["lower ci", "upper ci"]:
+                ax.plot(model_summary.index.values,model_summary.loc[:, col].values,color="#5199FF",lw=1,ls="--",zorder=14)
+                ax.plot(model_short_summary.index.values,model_short_summary.loc[:, col].values,color="#ff6e51",lw=1,ls="--",zorder=15)
+            ax.fill_between(model_summary.index.values,model_summary.loc[:, "lower ci"].values,model_summary.loc[:, "upper ci"].values, facecolor="#5199FF",edgecolor="None",alpha=0.25,zorder=9)
+            ax.fill_between(model_short_summary.index.values,model_short_summary.loc[:, "lower ci"].values,model_short_summary.loc[:, "upper ci"].values, facecolor="#ff6e51",edgecolor="None",alpha=0.25,zorder=10)
+            ax.plot(model_summary.index.values,model_summary.loc[:, "return value"].values,color="#285fad",lw=2,ls="-",zorder=24,label='GTSM-ERA5-E (1950-2022)')
+            ax.plot(model_short_summary.index.values,model_short_summary.loc[:, "return value"].values,color="#b8391f",lw=2,ls="-",zorder=25,label='GTSM-ERA5 (1979-2018)')
+
+            if cc>4:
+                ax.set_xlabel("Return period")
+            if cc in [0,3,5]:
+                ax.set_ylabel("Still water level [m]")
+            if cc==0:
+                ax.legend(loc="upper left")
+            ax.title.set_text(cname)
+            plt.tight_layout()
+            
+            figname = f'EVA_station_CITIES_RV_1950-2022_vs_1979-2018.png' 
+            fig.savefig(f'{dir_eva}/{figname}')
+
+
+
         
-        st_id = ids[ss]
-        cityname = citynames[ss]
-        if stations[st_id] not in ds_gtsm['stations'].values:
-            continue
-        
-        # prepare EVA outputs
-        var = ds_gtsm.sea_level_detrended.sel(stations=stations[st_id]).to_dataframe().loc[:, 'sea_level_detrended'].dropna()
-        varth = var.quantile(0.99); 
-        model = EVA(var); del var
-        model.get_extremes("POT", threshold=varth, r="72H");  del varth
-        model.fit_model(distribution='genpareto',model='MLE')
-
-        var = ds_gtsm.sea_level_detrended.sel(stations=stations[st_id],time=slice("1979-01-01", "2019-01-01")).to_dataframe().loc[:, 'sea_level_detrended'].dropna()
-        varth = var.quantile(0.99)
-        model_short = EVA(var); del var
-        model_short.get_extremes("POT", threshold=varth, r="72H"); del varth
-        model_short.fit_model(distribution='genpareto',model='MLE')
-
-        # get pandas with EVA results for plotting
-        model_summary = model.get_summary(return_period=[1,2,5,10,50,100,500,1000],alpha=0.95)
-        model_short_summary = model_short.get_summary(return_period=[1,2,5,10,50,100,500,1000],alpha=0.95)
-
-        # plot
-        fig = plt.figure(figsize=(20,20))
-        ax0 = plt.subplot2grid((4, 2), (0, 0), colspan=1, projection=crt.crs.Robinson())
-        ax1 = plt.subplot2grid((4, 2), (0, 1), colspan=1, rowspan=1)
-        ax2 = plt.subplot2grid((4, 2), (1, 0), colspan=1, rowspan=1)
-        ax3 = plt.subplot2grid((4, 2), (1, 1), colspan=1, rowspan=1,sharex=ax2,sharey=ax2)
-        ax4 = plt.subplot2grid((4, 2), (2, 0), colspan=2, rowspan=1)
-        ax5 = plt.subplot2grid((4, 2), (3, 0), colspan=2, rowspan=1)
-
-    #    plot location on the map
-        ax0 = global_map(ax0)
-        bs0 = ax0.scatter(x=coord_x,y=coord_y,s=15,c=rp_all[2,:]-rp_all[1,:],transform=crt.crs.PlateCarree(),cmap=cmap, vmin=vrange1[0], vmax=vrange1[1]); 
-        bs = ax0.scatter(x=coord_x[st_id],y=coord_y[st_id],marker ='o',s=200,transform=crt.crs.PlateCarree(),facecolors='none',edgecolors='red',linewidth=3); 
-        ax0.title.set_text(f"Location {int(stations[st_id])}")
-        
-    #   plot return values on a log plot per dataset
-        model.plot_return_values(return_period=[1, 2, 5, 10, 25, 50, 100,500,1000],alpha=0.95,ax=ax2)
-        model_short.plot_return_values(return_period=[1, 2, 5, 10, 25, 50, 100,500,1000],alpha=0.95,ax=ax3)
-        ax2.set_ylabel('Still water level [m]'); ax3.set_ylabel('Still water level [m]')
-        ax2.title.set_text(f"Return values based on 1950-2022 dataset"); ax3.title.set_text(f"Return values based on 1979-2018 dataset"); 
-
-        # plot EVA confidence intervals together for comparison
-        ax1.semilogx()
-        ax1.grid(True, which="both")
-        ax1.xaxis.set_major_formatter(plt.FuncFormatter(lambda x, _: f"{x:,.0f}"))
-        
-        for col in ["lower ci", "upper ci"]:
-            ax1.plot(model_summary.index.values,model_summary.loc[:, col].values,color="#5199FF",lw=1,ls="--",zorder=14)
-            ax1.plot(model_short_summary.index.values,model_short_summary.loc[:, col].values,color="#ff6e51",lw=1,ls="--",zorder=15)
-        ax1.fill_between(model_summary.index.values,model_summary.loc[:, "lower ci"].values,model_summary.loc[:, "upper ci"].values, facecolor="#5199FF",edgecolor="None",alpha=0.25,zorder=9)
-        ax1.fill_between(model_short_summary.index.values,model_short_summary.loc[:, "lower ci"].values,model_short_summary.loc[:, "upper ci"].values, facecolor="#ff6e51",edgecolor="None",alpha=0.25,zorder=10)
-        ax1.plot(model_summary.index.values,model_summary.loc[:, "return value"].values,color="#285fad",lw=2,ls="-",zorder=24,label='Based on 1950-2022 dataset')
-        ax1.plot(model_short_summary.index.values,model_short_summary.loc[:, "return value"].values,color="#b8391f",lw=2,ls="-",zorder=25,label='Based on 1979-2018 dataset')
-        ax1.set_xlabel("Return period")
-        ax1.set_ylabel("Still water level [m]")
-        ax1.legend(loc="upper left")
-        ax1.title.set_text(f"Effect of timeseries length on modelled return values")
-
-        # plot timeseries
-        ts = ax4.plot(ds_gtsm.sel(stations=stations[st_id])['time'].values,ds_gtsm.sel(stations=stations[st_id])['sea_level_detrended'].values);
-        ax4.set_ylabel('Still water level [m]')
-        ax4.grid(); ax4.title.set_text('Full timeseries')
-
-        # plot zoomed in timeseries
-        peak_id = np.nanargmax(ds_gtsm.sel(stations=stations[st_id])['sea_level_detrended'].values)
-        peak_time = ds_gtsm['time'].values[peak_id]
-        time1 = peak_time - pd.DateOffset(days=3)
-        time2 = peak_time + pd.DateOffset(days=3)
-        ts = ax5.plot(ds_gtsm.sel(stations=stations[st_id]).sel(time=slice(time1,time2))['time'].values,ds_gtsm.sel(stations=stations[st_id]).sel(time=slice(time1,time2))['sea_level_detrended'].values,'bo--');
-        ax5.set_ylabel('Still water level [m]')
-        ax5.grid(); ax5.title.set_text('Timeseries around peak value')
-        
-        figname = f'EVA_station_{str(int(stations[st_id])).zfill(5)}_RV_1950-2022_vs_1979-2018_{cityname}.png' 
-        fig.savefig(f'{dir_eva}/timeseries_plots/{figname}')
-        plt.clf()
-
-
-    
 
