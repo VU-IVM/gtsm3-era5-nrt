@@ -8,7 +8,7 @@
 module purge
 module load 2021
 
-for yr in {1950..1950..1}; do
+for yr in {2023..2023..1}; do
 (
   echo $yr
   conda run -n gtsm3-era5-nrt-slm python p3_prepare_run.py $yr

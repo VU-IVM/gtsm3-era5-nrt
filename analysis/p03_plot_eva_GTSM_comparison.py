@@ -239,12 +239,36 @@ if __name__ == "__main__":
 
             figname = 'Map_comparison_model_GTSM-ERA5-E_vs_GTSM-ERA5.png'  
             fig.savefig(f'{dir_eva}/{figname}')
+
+
+        # plot of difference in confidence interval width
+        for rp in [100]:
+            rp_bf_all = np.vstack((np.array(ds_gtsm_eva2[f'{str(rp)}_bf']),np.array(ds_gtsm_eva3[f'{str(rp)}_bf'])))
+            rp_lower_all = np.vstack((np.array(ds_gtsm_eva2[f'{str(rp)}_lower']),np.array(ds_gtsm_eva3[f'{str(rp)}_lower'])))
+            rp_higher_all = np.vstack((np.array(ds_gtsm_eva2[f'{str(rp)}_higher']),np.array(ds_gtsm_eva3[f'{str(rp)}_higher'])))
+            rp_intwidth_all = rp_higher_all - rp_lower_all; del rp_lower_all, rp_higher_all
             
-
+            mpl.rcParams.update({'font.size': 18})
+            csize = 15
+            fig = plt.figure(figsize=(20,15))
+            axes_class = (GeoAxes, dict(projection=crt.crs.Robinson()))
+            axs = AxesGrid(fig, 111, axes_class=axes_class, nrows_ncols=(1, 2), share_all=True, axes_pad=1.6,cbar_location='bottom',cbar_mode='each',cbar_size='8%',cbar_pad=0.4, label_mode='keep')
     
+            # plot interval width in the ERA5-E dataset
+            ax = global_map(axs[0])
+            bs = ax.scatter(x=coord_x,y=coord_y,s=csize,c=rp_intwidth_all[1,:],transform=crt.crs.PlateCarree(),cmap=cmap3, vmin=0, vmax=1);
+            cbar = ax.cax.colorbar(bs); cbar.set_label('Confidence interval width [m]',fontsize=20)
+            ax.set_title(f'Width of confidence interval \n {rp}-year return period water levels \n GTSM-ERA5-E dataset',fontsize=22);
 
+            ax = global_map(axs[1])
+            bs = ax.scatter(x=coord_x,y=coord_y,s=csize,c=rp_intwidth_all[1,:]-rp_intwidth_all[0,:],transform=crt.crs.PlateCarree(),cmap=cmap4, vmin=-0.5, vmax=0.5); 
+            cbar = ax.cax.colorbar(bs); cbar.set_label('Difference [m]',fontsize=20)
+            ax.set_title(f'Difference in confidence interval width \n {rp}-year return period water levels \n GTSM-ERA5-E (1950-2022) vs. GTSM-ERA5 (1979-2018)',fontsize=22);
 
-    
+            plt.tight_layout()   
+
+            figname = 'Map_comparison_model_GTSM-ERA5-E_vs_GTSM-ERA5_confidence_intervals.png'  
+            fig.savefig(f'{dir_eva}/{figname}')
 
 
     if make_local_plots:
