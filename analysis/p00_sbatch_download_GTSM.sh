@@ -11,7 +11,7 @@ module load 2021
 for yr in {1985..2014..1}; do
 (
   echo $yr 
-  conda run -n gtsm3-era5-nrt-slm python p00_download_GTSM_waterlevels.py $yr 
+  conda run -n gtsm3-era5-nrt-slm python p00_download_GTSM_waterlevels_from_CDS.py $yr 
 ) &
 done
 wait

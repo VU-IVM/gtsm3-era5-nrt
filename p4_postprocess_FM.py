@@ -2,7 +2,7 @@
 # Contact: robyn.gwee@deltares.nl
 # Date created: Mon Feb 22 2021
 # Date updated: Thu Sep 14 2023
-# Remarks: raw2nc 
+# Remarks: This script processes the outputs of GTSM-ERA5 model runs into timeseries files of still water levels and surge levels per year and month.
 
 import os
 from datetime import datetime
@@ -30,7 +30,6 @@ def resample_and_plot(outpath):
     # coor
     x = ds['station_x_coordinate']
     y = ds['station_y_coordinate']
-    #varname =  list(ds.keys()) 
     print(ds_min)
     try:
         v0 = ds_mean.surge.values
@@ -56,7 +55,7 @@ def resample_and_plot(outpath):
     for ax in axes.flat:
         ax.set_global()
         ax.coastlines()
-    fig.savefig(outpath.replace('.nc','.png'))
+    #fig.savefig(outpath.replace('.nc','.png'))
     
     # plot NL
     fig, axes = plt.subplots(ncols=1, nrows=3,figsize=(20,7), subplot_kw={'projection': proj})

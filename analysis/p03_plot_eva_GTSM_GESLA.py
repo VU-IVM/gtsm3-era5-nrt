@@ -21,13 +21,22 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.axes_grid1 import AxesGrid
 from cartopy.mpl.geoaxes import GeoAxes
 import cartopy as crt
-from eva import detrend
 from pyextremes import EVA
 from pyextremes.plotting import plot_return_values
 sys.path.append("..")
 from path_dict import path_dict
-
 from scipy.stats.stats import pearsonr
+
+def detrend(ds: xr.DataArray, plot = False):
+  ''' remove annual means and overall mean '''
+  ds = ds.assign_coords(year=ds.time.dt.strftime("%Y"))
+  ds_new = (ds.groupby("year") - ds.groupby("year").mean("time"))
+  ds['sea_level_detrended'] = ds_new['sea_level'] - ds_new['sea_level'].mean()
+  if plot == True:
+      fig, axs = plt.subplots(nrows=2)
+      ds.sea_level.plot.line(x='time',ax=axs[0], add_legend=False)   
+      ds.sea_level_detrended.plot.line(x='time',ax=axs[1],add_legend=False)  
+  return ds
 
 if __name__ == "__main__":   
     # EVA was made available for three periods:

@@ -2,7 +2,7 @@
 # Author: N. Aleksandrova
 # Contact: natalia.aleksandrova@deltares.nl
 # Date created: July 2023
-# Remarks: gtsm_eva
+# Remarks: This script is for producing various global and location-specific plots of water levels based on the GTSM-ERA5 model runs. 
 
 import pandas as pd
 from global_map import global_map
@@ -20,12 +20,23 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.axes_grid1 import AxesGrid
 from cartopy.mpl.geoaxes import GeoAxes
 import cartopy as crt
-from eva import detrend
 from pyextremes import EVA
 from pyextremes.plotting import plot_return_values
 
+# choose which plots to make
 make_global_plots = 0
 make_local_plots = 1
+
+def detrend(ds: xr.DataArray, plot = False):
+  ''' remove annual means and overall mean '''
+  ds = ds.assign_coords(year=ds.time.dt.strftime("%Y"))
+  ds_new = (ds.groupby("year") - ds.groupby("year").mean("time"))
+  ds['sea_level_detrended'] = ds_new['sea_level'] - ds_new['sea_level'].mean()
+  if plot == True:
+      fig, axs = plt.subplots(nrows=2)
+      ds.sea_level.plot.line(x='time',ax=axs[0], add_legend=False)   
+      ds.sea_level_detrended.plot.line(x='time',ax=axs[1],add_legend=False)  
+  return ds
 
 if __name__ == "__main__":   
     # EVA was made available for three periods:
@@ -125,6 +136,7 @@ if __name__ == "__main__":
     cmap4 = mpl.colormaps['seismic']#.resampled(20)
     
     if make_global_plots:
+        
         # # Plotting percentiles - periods 1,2,3 and difference
         quan95 = np.vstack((quan95_1,quan95_2,quan95_3))
         quan90 = np.vstack((quan90_1,quan90_2,quan90_3))
@@ -184,7 +196,7 @@ if __name__ == "__main__":
     #     figname = f'EVA_map_RP{rp}_comparison_between_periods_v4.png' 
     #     fig.savefig(f'{dir_eva}/{figname}')
 
-        # smaller plot with just two panels
+        # smaller plot with just two panels of extreme return periods
         for rp in [1,10,100]:
             rp_all = np.vstack((np.array(ds_gtsm_eva1[f'{str(rp)}_bf']),np.array(ds_gtsm_eva2[f'{str(rp)}_bf']),np.array(ds_gtsm_eva3[f'{str(rp)}_bf'])))
             vrange1=[0,5]; vrange2=[-0.5,0.5];  
@@ -247,6 +259,10 @@ if __name__ == "__main__":
             rp_lower_all = np.vstack((np.array(ds_gtsm_eva2[f'{str(rp)}_lower']),np.array(ds_gtsm_eva3[f'{str(rp)}_lower'])))
             rp_higher_all = np.vstack((np.array(ds_gtsm_eva2[f'{str(rp)}_higher']),np.array(ds_gtsm_eva3[f'{str(rp)}_higher'])))
             rp_intwidth_all = rp_higher_all - rp_lower_all; del rp_lower_all, rp_higher_all
+
+            # count points where the width is reduced and the average reduction
+            print(f'Confidence interval width reduced by {(1-np.mean(rp_intwidth_all[1,:]/rp_intwidth_all[0,:]))*100:.1f}%')
+            print(f'Confidence interval width is reduced at {sum(1 for i in tmp if i < 0)/len(tmp)*100:.1f}% of points')
             
             mpl.rcParams.update({'font.size': 18})
             csize = 15
@@ -326,6 +342,7 @@ if __name__ == "__main__":
 
         # open timeseries selection
         ds_gtsm = xr.open_dataset("/gpfs/work1/0/einf3499/06_model_runs/03_postprocessing/EVA-GTSM-ERA5/period_1950_2022_1hr_selected_stations_CityLocs.nc");
+        
         ds_gtsm['sea_level'] = ds_gtsm['waterlevel']
         ds_gtsm = ds_gtsm.drop(['waterlevel'])
         ds_gtsm = detrend(ds_gtsm)
