@@ -1,12 +1,13 @@
 #!/bin/bash
 #SBATCH -t 4:00:00
 #SBATCH -N 1
+#SBATCH -p rome
 
 # Make sure the jupyter command is available, either by loading the appropriate modules, sourcing your own virtual environment, etc.
 module load 2021
 
-source /home/muiss/miniconda3/etc/profile.d/conda.sh
-conda activate /home/muiss/miniconda3/envs/era5-e
+source /home/naleksandro/miniconda3/etc/profile.d/conda.sh
+conda activate /home/naleksandro/miniconda3/envs/gtsm3-era5-nrt-slm
  
 # Choose random port and print instructions to connect
 PORT=`shuf -i 5000-5999 -n 1`

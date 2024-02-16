@@ -8,7 +8,7 @@ module purge
 module load 2021
 
 # loop over months and years
-for yr in {1960..1960..1}; do
+for yr in {2023..2023..1}; do
   for mnth in {1..12..1}; do
   (
     echo $yr $mnth
