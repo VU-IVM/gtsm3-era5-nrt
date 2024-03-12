@@ -27,6 +27,10 @@ sys.path.append("..")
 from path_dict import path_dict
 from scipy.stats.stats import pearsonr
 
+<<<<<<< HEAD
+# function for detrending of timeseries
+=======
+>>>>>>> 2682cc3d03a9e92d2a7f309474ed169b67916d9b
 def detrend(ds: xr.DataArray, plot = False):
   ''' remove annual means and overall mean '''
   ds = ds.assign_coords(year=ds.time.dt.strftime("%Y"))
@@ -39,10 +43,13 @@ def detrend(ds: xr.DataArray, plot = False):
   return ds
 
 if __name__ == "__main__":   
+<<<<<<< HEAD
+=======
     # EVA was made available for three periods:
     settings = {'yearmin1': 1985,'yearmax1': 2014,'mode1':'1hr',
                 'yearmin2': 1979,'yearmax2': 2018,'mode2':'1hr',
                 'yearmin3': 1950,'yearmax3': 2022,'mode3':'1hr'}
+>>>>>>> 2682cc3d03a9e92d2a7f309474ed169b67916d9b
     rps =[1,10,50,100]    
     
     # location of EVA data
@@ -130,6 +137,23 @@ if __name__ == "__main__":
     ax = global_map(axs[0])
     #bs = ax.scatter(x=ds_ges.station_x_coordinate.values[ids_ges],y=ds_ges.station_y_coordinate.values[ids_ges],s=15,color='blue',transform=crt.crs.PlateCarree()); 
     bs = ax.scatter(x=ds_gtsm.station_x_coordinate.values[ids_gtsm],y=ds_gtsm.station_y_coordinate.values[ids_gtsm],s=15,color='red',transform=crt.crs.PlateCarree()); 
+<<<<<<< HEAD
+
+    # check coverage
+    numel_short = np.count_nonzero(~np.isnan(ds_ges.isel(stations=ids_ges).sel(time=slice('1979-01-01','2018-01-01'))['sea_level'].values))
+    numel_long = np.count_nonzero(~np.isnan(ds_ges.isel(stations=ids_ges).sel(time=slice('1950-01-01','2023-01-01'))['sea_level'].values))
+    numel_extra = np.count_nonzero(~np.isnan(ds_ges.isel(stations=ids_ges).sel(time=slice('1950-01-01','1979-01-01'))['sea_level'].values))
+
+    data_coverage_short = numel_short / np.size(ds_ges.isel(stations=ids_ges).sel(time=slice('1979-01-01','2018-01-01'))['sea_level'])*100
+    data_coverage_long = numel_long / np.size(ds_ges.isel(stations=ids_ges).sel(time=slice('1950-01-01','2023-01-01'))['sea_level'])*100
+    data_coverage_extra = numel_extra / np.size(ds_ges.isel(stations=ids_ges).sel(time=slice('1950-01-01','1979-01-01'))['sea_level'])*100
+    
+    print(f'Data coverage in the period 1979-2018: {data_coverage_short}')
+    print(f'Data coverage in the period 1950-2022: {data_coverage_long}')
+    print(f'Data coverage in the period 1950-1978: {data_coverage_extra}')
+    
+=======
+>>>>>>> 2682cc3d03a9e92d2a7f309474ed169b67916d9b
     
     #load GTSM timeseries for selected stations
     # for year in range(1950,2023):

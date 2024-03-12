@@ -1,5 +1,8 @@
 # Author: N. Aleksandrova, Sanne Muis
+<<<<<<< HEAD
+=======
 # Contact: sanne.muis@deltares.nl
+>>>>>>> 2682cc3d03a9e92d2a7f309474ed169b67916d9b
 # Date created: July 2023
 # Remarks: this script is for calculating the statistical values based on detrended timeseries of still water levels originating from the GTSM-ERA5 model runs
 
@@ -19,6 +22,10 @@ import glob
 from pyextremes import EVA
 from pyextremes import plot_threshold_stability
 
+<<<<<<< HEAD
+# function to detrend the timeseries
+=======
+>>>>>>> 2682cc3d03a9e92d2a7f309474ed169b67916d9b
 def detrend(ds_gesla: xr.DataArray, plot = False):
   ''' remove annual means and overall mean '''
   ds_gesla = ds_gesla.assign_coords(year=ds_gesla.time.dt.strftime("%Y"))
@@ -31,10 +38,18 @@ def detrend(ds_gesla: xr.DataArray, plot = False):
       ds_gesla.sea_level_detrended.plot.line(x='time',ax=axs[1],add_legend=False)  
   return ds_gesla
     
+<<<<<<< HEAD
+# function to compute quantile statistics
+=======
+>>>>>>> 2682cc3d03a9e92d2a7f309474ed169b67916d9b
 def stats(ds_gesla: xr.Dataset ,prcts):
   ds_gesla_stats = ds_gesla.sea_level_detrended.quantile(prcts, dim=('time')) 
   return ds_gesla_stats
 
+<<<<<<< HEAD
+# funcion to compute extreme values using POT-GPD and 99% threshold values
+=======
+>>>>>>> 2682cc3d03a9e92d2a7f309474ed169b67916d9b
 def compute_eva_pyextremes(var,istation,rps,dir_out):
     var = var.to_dataframe().loc[:, 'sea_level_detrended'].dropna()
     varth = var.quantile(0.99)
@@ -72,6 +87,10 @@ def compute_eva_pyextremes(var,istation,rps,dir_out):
     potmodel = potmodel.transpose().set_index('station')
     return potmodel
     
+<<<<<<< HEAD
+# main script for computing and saving the extreme values and statistics
+=======
+>>>>>>> 2682cc3d03a9e92d2a7f309474ed169b67916d9b
 def compute_rv_eva(yr_start,yr_end,st_start,st_end,mode):
     settings = {'yearmin': int(yr_start),
                 'yearmax': int(yr_end),
@@ -79,6 +98,11 @@ def compute_rv_eva(yr_start,yr_end,st_start,st_end,mode):
                 'st_end': int(st_end)}
 
     print(f'{yr_start}-{yr_end}, stations: {st_start}-{st_end}, {mode}')
+<<<<<<< HEAD
+    
+    # define quantiles to be computed and return periods
+=======
+>>>>>>> 2682cc3d03a9e92d2a7f309474ed169b67916d9b
     prcts = [0.05,0.10,0.25,0.50,0.75,0.90,0.95]
     rps = np.array([1,2,5,10,25,50,75,100])
     
@@ -87,6 +111,10 @@ def compute_rv_eva(yr_start,yr_end,st_start,st_end,mode):
     from path_dict import path_dict
     dir_postproc = path_dict['postproc']
 
+<<<<<<< HEAD
+    # directories where 1-hr and 10-min timeseries are stored
+=======
+>>>>>>> 2682cc3d03a9e92d2a7f309474ed169b67916d9b
     if mode == '1hr':
         dir_ds = os.path.join(dir_postproc,'timeseries-GTSM-ERA5-hourly','waterlevel')
         dir_ds2 = os.path.join(dir_postproc,'timeseries-GTSM-ERA5-hourly-1979-2018','waterlevel')
@@ -101,7 +129,11 @@ def compute_rv_eva(yr_start,yr_end,st_start,st_end,mode):
     for year in range(settings['yearmin'],settings['yearmax']+1):
         print('merging year ', year)
         for mnth in range(1,13):
+<<<<<<< HEAD
+            if ((year < 1980) | (year > 2018)):                
+=======
             if ((year < 1980) | (year > 2018)):     # note that 1979 run is from the extended dataset with more realistic spinup           
+>>>>>>> 2682cc3d03a9e92d2a7f309474ed169b67916d9b
                 file_nc = os.path.join(dir_postproc,f'{dir_ds}/reanalysis_waterlevel*_{year}_{mnth:02d}*.nc')
                 tmp = glob.glob(file_nc)
                 file_nc = tmp[0]
@@ -130,7 +162,11 @@ def compute_rv_eva(yr_start,yr_end,st_start,st_end,mode):
     # output file for TS
     ofile = 'ds_GTSM-ERA5_%s_%s_stations_%05i-%05i.nc' % (str(settings['yearmin']),str(settings['yearmax']),stationlist[0],stationlist[-1])
     ofile = Path(os.path.join(dir_out, ofile))
+<<<<<<< HEAD
+    #ds_gtsm.to_netcdf(ofile) #save full TS for selected stations (optional for intermediate checks, but too large for entire dataset)
+=======
     #ds_gtsm.to_netcdf(ofile) #save full TS for selected stations (optional for intermediate checks)
+>>>>>>> 2682cc3d03a9e92d2a7f309474ed169b67916d9b
 
     # detrend
     ds_gtsm['sea_level'] = ds_gtsm['waterlevel']
@@ -139,7 +175,11 @@ def compute_rv_eva(yr_start,yr_end,st_start,st_end,mode):
     ds_gtsm = ds_gtsm.drop(['sea_level'])
     ds_gtsm = ds_gtsm.chunk({"time": -1, "stations": "auto"})
     
+<<<<<<< HEAD
+    # compute stats and save to file
+=======
     # compute stats
+>>>>>>> 2682cc3d03a9e92d2a7f309474ed169b67916d9b
     ds_stats = stats(ds_gtsm, prcts)
     ds_stats.to_netcdf(str(ofile).replace('.nc', '_stats.nc'))
     

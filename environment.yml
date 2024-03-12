@@ -343,4 +343,7 @@ dependencies:
   - zipp=3.16.2
   - zlib=1.2.13
   - zstd=1.5.2
+<<<<<<< HEAD
+=======
 prefix: /home/naleksandro/miniconda3/envs/gtsm3-era5-nrt-slm
+>>>>>>> 2682cc3d03a9e92d2a7f309474ed169b67916d9b
