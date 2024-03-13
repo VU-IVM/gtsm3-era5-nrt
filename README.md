@@ -72,7 +72,10 @@ The vertical reference of GTSMv3.0 is MSL, as defined in GEBCO bathymetry. To ma
 
 Both mean sea level and vertical reference files can be downloaded [here](https://doi.org/10.5281/zenodo.3948088).
 
-### Previous dataset
+### Validation data
+Validation is performed using the observational data from the [GESLA (Global Extreme Sea Level Analysis) project](https://www.gesla.org), version 3 of the dataset. A subset of this dataset was made to include only stations where the available observations span a period of at least 50 years overlapping with the period covered by GTSM-ERA5-E dataset (1950-2022), and where no more than 25% of data is missing from that period. Within the script used for validation an additional filter is applied to only use stations located no further than 10 km from the nearest model output locations.
+
+### Previous GTSM-ERA5 dataset
 The previous GTSM-ERA5 reanalysis dataset, covering 1979-2018, is available at the [C3S Climate Data Store](https://doi.org/10.24381/cds.a6d42d60).  
 
 ## Contact
