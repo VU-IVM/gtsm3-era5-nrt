@@ -1,8 +1,4 @@
 # Author: N. Aleksandrova, Sanne Muis
-<<<<<<< HEAD
-=======
-# Contact: sanne.muis@deltares.nl
->>>>>>> 2682cc3d03a9e92d2a7f309474ed169b67916d9b
 # Date created: July 2023
 # Remarks: this script is for calculating the statistical values based on detrended timeseries of still water levels originating from the GTSM-ERA5 model runs
 
