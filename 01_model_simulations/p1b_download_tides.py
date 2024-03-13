@@ -3,6 +3,8 @@
 import os
 import cdsapi
 import zipfile
+import sys
+sys.path.append("..")
 from path_dict import path_dict
 
 

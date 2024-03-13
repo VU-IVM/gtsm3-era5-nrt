@@ -11,14 +11,15 @@ import sys
 import os
 import numpy as np
 from datetime import datetime
+sys.path.append("..")
+from path_dict import path_dict
 
 def resampleTS_DailyMax(year):
 
     print(year)
     year=int(year)
 
-    sys.path.append("..")
-    from path_dict import path_dict
+
     dir_postproc = path_dict['postproc']
     dir_out_wl = os.path.join(dir_postproc,'timeseries-GTSM-ERA5-dailymax','waterlevel') 
     ofile_wl = f'{dir_out_wl}/reanalysis_waterlevel_dailymax_{year}.nc' #output file

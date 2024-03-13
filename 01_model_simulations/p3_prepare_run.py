@@ -9,6 +9,8 @@ Created on Mon Feb 12 17:25:23 2018
 import os
 import datetime as dt
 from distutils.dir_util import copy_tree
+import sys
+sys.path.append("..")
 from path_dict import path_dict
 
 

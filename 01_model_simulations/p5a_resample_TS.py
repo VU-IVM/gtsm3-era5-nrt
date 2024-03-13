@@ -5,9 +5,11 @@ Created on Fri Aug 31 2023
 """
 
 import xarray as xr
-import sys
 import os
 import numpy as np
+import sys
+sys.path.append("..")
+from path_dict import path_dict
 
 def resampleTS(year, mnth):
 
@@ -15,8 +17,6 @@ def resampleTS(year, mnth):
     year=int(year)
     mnth=int(mnth)
 
-    sys.path.append("..")
-    from path_dict import path_dict
     dir_postproc = path_dict['postproc']
     dir_out_wl = os.path.join(dir_postproc,'timeseries-GTSM-ERA5-hourly','waterlevel') 
     dir_out_surge = os.path.join(dir_postproc,'timeseries-GTSM-ERA5-hourly','surge')

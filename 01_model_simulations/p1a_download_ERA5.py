@@ -3,6 +3,8 @@
 import os
 import calendar
 import cdsapi
+import sys
+sys.path.append("..")
 from path_dict import path_dict
 
 def download_era5(yr, mnth):

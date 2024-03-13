@@ -5,6 +5,8 @@ import xarray as xr
 import datetime as dt
 import numpy as np
 import glob
+import sys
+sys.path.append("..")
 from path_dict import path_dict
 
 
