@@ -12,11 +12,16 @@ The goal of the project was to develop a reproducible workflow used to generate 
 
 <img src="images/GTSM-ERA5-workflow.png" width=60%>
 
+### Preparation
+To be able to run the Python scripts you need to install conda and create an virtual environment using the environment.yml file (`conda env create --file environment.yml`). This installs the required packages, such as xarray, netCDF4, cartopy, etc. You also need to specify the relevant folders in the path_dict.py file. 
+
 ## Model simulations
 The main part of the workflow are the model simulations, which are used to produce hourly timeseries of total water levels and surge levels globally. We make use of the same modelling approach as presented in Muis et al. (2020,2023)[^2][^3]. We further develop a semi-automated and portable workflow that can easily be used to deploy Global Tide and Surge Model (GTSM) on a high-performance computing cluster. In this case we made use of the [Dutch National Supercomputer Snellius](https://www.surf.nl/en/dutch-national-supercomputer-snellius) by SURF. Snellius makes use of SLURM for managing and scheduling jobs on Linux clusters. 
 
-### Hydrodynamic model
+### Hydrodynamic modelling software
 The modelling of global tides and surges is done by using the GTSMv3.0 model. The [Global Tide and Surge Model (GTSM)](https://publicwiki.deltares.nl/display/GTSM/Global+Tide+and+Surge+Model) is a depth-averaged hydrodynamic model, developed by [Deltares](https://www.deltares.nl/), with global coverage. GTSM is based on [Delft3D Flexible Mesh software](https://www.deltares.nl/en/software-and-data/products/delft3d-fm-suite/modules/d-flow-flexible-mesh) and has a spatially varying resolution which increases towards the coast. GTSM can be used to simulate water levels and currents, that arise from tides and storm surges. The model has showed to be able to simulate tides and storm surge with enough accuracy when forced with wind and pressure fields from the ERA5 climate reanalysis[^4][^5].  
+
+To run the model, we make use of a Delft3D FM Singularity container, which allows us to run Delft3D FM on any HPC clusters in a simple, portable, and reproducible way. More instructructions on how to obtain a delft3dfmcontainer can be found [here](https://oss.deltares.nl/web/delft3dfm/get-started). Deltares collegues can go to `p:\d-hydro\delft3dfm_containers` to obtain a container. The `fm_container` folder can be adjusted in `path_dict.py`.
 
 ### Bash scripts
 The model simulation consists of a sequence of bash scripts with SLURM commands that calls the relevant python scripts (or the Delft3D FM singularity container in case of model simulations).
@@ -41,12 +46,15 @@ The Python scripts submitted by the bash script are used to download and preproc
 - `p5a_resample_TS.py` - functionality to resample 10-min timeseries data to hourly timeseries (total water level and surge).
 - `p5b_resample_TS_DailyMax.py` - functionality to resample 10-min timeseries data to daily maxima timeseries (total water levels only).
 
-## Software
-### Delft3D Flexible Mesh
-We make use of a Delft3D FM Singularity container, which allows us to run Delft3D FM on any HPC clusters in a simple, portable, and reproducible way. More instructructions on how to obtain a delft3dfmcontainer can be found [here](https://oss.deltares.nl/web/delft3dfm/get-started). Deltares collegues can go to `p:\d-hydro\delft3dfm_containers` to obtain a container. The `fm_container` folder can be adjusted in `path_dict.py`.
+## Statistical analysis and validation
+Based on model output results, statistical analysis is performed on the timeseries from 1950 to 2022. This includes computing the various percentiles and performing extreme value analysis for all output points of the GTSM model (43000+ stations). Validation of the timeseries is performed by comparing it to the Global Extreme Sea Level Analysis (GESLA) dataset[^6]. A combination of a bash and Python script is used to download the GTSM-ERA5 water level global reanalysis timeseries for years 1979-2018, and to perform extreme value analysis on the full timeseries. The GTSM-ERA5 which was already available on [CDS](https://cds.climate.copernicus.eu/cdsapp#!/dataset/sis-water-level-change-timeseries-cmip6?tab=overview) - this dataset was generated using the same methodology and is extended in the current project. The scripts used for plotting and validation were ran without bash scripts, but using an interactive computational node with Jupyter Lab. 
 
-### Python 
-To be able to run the Python script you need to install conda and create an virtual environment using the environment.yml file (`conda env create --file environment.yml`). This installs the required packages, such as xarray, netCDF4, cartopy, etc. 
+### Scripts
+- `p00_sbatch_download_GTSM.sh` and `p00_download_GTSM_waterlevels_from_CDS.py`- scripts to download the GTSM-ERA5 water level timeseries dataset for 1979-2018 from GTSM
+- `p01_sbatch_compute_EVA_GTSM.sh` and `p01_computing_return_periods_GTSM_batch_pyextremes.py` - scripts to compute statistics (percentiles and extreme values) based on water level timeseries for a chosen period (we did this analysis on 1950-2022 and on 1979-2018 timeseries)
+- `p02_plot_eva_GTSM_comparison.py` - script used for plotting percentiles and extreme values of total water levels on a global map, comparison between the GTSM-ERA5-E (1950-2022) and GTSM-ERA5 (1979-2018) datasets, and plots of timeseries and statistics for a few chosen locations around the globe.
+- `p03_plot_eva_GTSM_GESLA.py` - script used for comparing model data to the observational data from GESLA dataset, and making respective plots. This script uses a subset of the GESLA dataset as input.
+- `p04_make_dataset_GTSM-ERA5-E_stats.py` - script used to generate a dataset file containing the statistics (percentiles and extreme values) of total water levels based on 1950-2022 timeseries for all GTSM output locations.
 
 ## Data sources
 We make use of various data sources. Whereas most of them are open and retrieval is automated and part of the scripts, there are some data sources for which retrieval is not automated yet. This because there are not available in open repositories or have been produced specifically for this project. These sources are described below. 
@@ -58,22 +66,25 @@ We use the ERA5 climate renalysis  as meteorological forcing (`10m_u_component_o
 Tides (`tidal_elevation`) are downloaded from the [Copernicus Climate Data Store API](https://doi.org/10.24381/cds.a6d42d60). This tides are computed using the same modelling approach based on GTSMv3.0 as the total water level simulations and are used to compute the storm surge levels. 
 
 ### Mean sea level and vertical reference 
-The mean sea level is updated annually. The mean sea level files have been produced by Dewi Le Bars from KNMI. The period 1986-2005 is used as reference period. Sea level fields are computed from the sum of different contributors, including dynamic changes, thermal expansion, changes in gravitational fields, and contribution from glaciers and ice sheets. The different contributions are computed and combined using the probabilistic model described in Le Bars (2018). For the period 1950-2016, we use products based on observations for the Antarctic and Greenland ice sheets (Mouginot et al., 2019; Rignot et al., 2019), the glaciers (Marzeion et al., 2015), thermal expansion between 0 and 2000 m depth (Levitus et al., 2012), and climate-driven water storage (Humphrey & Gudmundsson, 2019). The ice sheets are assumed to be in equilibrium before 1979 for Antarctica and 1972 for Greenland because no data are available before these dates. For the period 2016-2050 we use sea-level rise projections based on the Fifth Assessment Report (AR5) of the Intergovernmental Panel on Climate Change (IPCC) for the RCP8.5 scenario (Church et al., 2013), very similar to the SSP585 scenario used by the models as above. The redistribution of water in the ocean due to wind changes and local steric effects is taken from the CMIP5 models (i.e. ‘zos’ field for the entire period). The fingerprints for the ice sheets, glaciers and land water storage are from the AR5 assessment, and include the gravitational, rotational and Earth elastic response. For the dynamics of the Antarctic contribution we use the re-evaluation presented in the IPCC’s Special Report on the Ocean and Cryosphere in a Changing Climate (SROCC) (Oppenheimer et al., 2019). Additionally, we add the glacial isostatic adjustment from the ICE-6G model (Peltier et al., 2015) but do not consider other processes of vertical land motion, such as subsidence or tectonics. The uncertainty in mean sea level is removed by selecting the median of the sea level observations and projections distributions. Note that at the time the GTSM simulation were carried out the SLR projections based on CMIP6 were not yet available. The files are converted to a pressure
+The mean sea level is updated annually. The mean sea level files have been produced by Dewi Le Bars from KNMI. The period 1986-2005 is used as reference period. Sea level fields are computed from the sum of different contributors, including dynamic changes, thermal expansion, changes in gravitational fields, and contribution from glaciers and ice sheets. The different contributions are computed and combined using the probabilistic model described in Le Bars (2018). For the period 1950-2016, we use products based on observations for the Antarctic and Greenland ice sheets (Mouginot et al., 2019; Rignot et al., 2019), the glaciers (Marzeion et al., 2015), thermal expansion between 0 and 2000 m depth (Levitus et al., 2012), and climate-driven water storage (Humphrey & Gudmundsson, 2019). The ice sheets are assumed to be in equilibrium before 1979 for Antarctica and 1972 for Greenland because no data are available before these dates. For the period 2016-2050 we use sea-level rise projections based on the Fifth Assessment Report (AR5) of the Intergovernmental Panel on Climate Change (IPCC) for the RCP8.5 scenario (Church et al., 2013), very similar to the SSP585 scenario used by the models as above. The redistribution of water in the ocean due to wind changes and local steric effects is taken from the CMIP5 models (i.e. ‘zos’ field for the entire period). The fingerprints for the ice sheets, glaciers and land water storage are from the AR5 assessment, and include the gravitational, rotational and Earth elastic response. For the dynamics of the Antarctic contribution we use the re-evaluation presented in the IPCC’s Special Report on the Ocean and Cryosphere in a Changing Climate (SROCC) (Oppenheimer et al., 2019). Additionally, we add the glacial isostatic adjustment from the ICE-6G model (Peltier et al., 2015) but do not consider other processes of vertical land motion, such as subsidence or tectonics. The uncertainty in mean sea level is removed by selecting the median of the sea level observations and projections distributions. The files are converted to a pressure field that is used as an input to the GTSM model runs.
 
-The vertical reference of GTSMv3.0 is MSL, as defined in GEBCO bathymetry. T Tho make the definition of MSL more consistent with the vertical reference used in the SLR fields, the mean sea-level pressure field (MSLP) over 1986–2005 is removed. The MSLP calculation is based on the ERA-Interim because ERA5 was not available at the time.
+The vertical reference of GTSMv3.0 is MSL, as defined in GEBCO bathymetry. To make the definition of MSL more consistent with the vertical reference used in the SLR fields, the mean sea-level pressure field (MSLP) over 1986–2005 is removed. The MSLP calculation is based on the ERA-Interim because ERA5 was not available at the time when these input files were created.
 
-Both files can be downloaded [here](https://doi.org/10.5281/zenodo.3948088).
+Both mean sea level and vertical reference files can be downloaded [here](https://doi.org/10.5281/zenodo.3948088).
 
-### Links
+### Previous dataset
 The previous GTSM-ERA5 reanalysis dataset, covering 1979-2018, is available at the [C3S Climate Data Store](https://doi.org/10.24381/cds.a6d42d60).  
-
 
 ## Contact
 Sanne Muis - sanne.muis@deltares.nl
-[^1]: Aleksandrova, N., Veenstra, J., Gwee, R. & Muis, S. (2024). ...
+Natalia Aleksandrova - natalia.aleksandrova@deltares.nl
+
+## References
+[^1]: Aleksandrova, N., Veenstra, J., Gwee, R. & Muis, S. (2024). Global dataset of storm surges and extreme sea levels for 1950-2022 based on the ERA5 climate reanalysis. In review.
 [^2]: Muis, S., Apecechea, M. I., Dullaart, J., ... & Verlaan, M. (2020). A High-resolution global dataset of extreme sea levels, tides, and storm surges, including future projections. Frontiers in Marine Science, doi:10.3389/fmars.2020.00263
 [^3]: Muis, S. et al (2023). Global projections of storm surges using high-resolution CMIP6 climate models. In review.
 [^4]: Muis, S., Verlaan, M., Winsemius, H. C., Aerts, J. C. J. H., & Ward, P. J. (2016). A global reanalysis of storm surge and extreme sea levels. Nature Communications, doi:10.1038/ncomms11969.
 [^5]: Dullaart, J. C., Muis, S., Bloemendaal, N., & Aerts, J. C. (2020). Advancing global storm surge modelling using the new ERA5 climate reanalysis. Climate Dynamics, doi:10.1007/s00382-019-05044-0
+[^6]: Haigh, I.D. et al. GESLA Version 3: A major update to the global higher-frequency sea-level dataset. Geoscience Data Journal (2022) doi:10.1002/gdj3.174.
 
 
