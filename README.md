@@ -79,7 +79,7 @@ Validation is performed using the observational data from the [GESLA (Global Ext
 The previous GTSM-ERA5 reanalysis dataset, covering 1979-2018, is available at the [C3S Climate Data Store](https://doi.org/10.24381/cds.a6d42d60).  
 
 ## Contact
-Sanne Muis - sanne.muis@deltares.nl
+Sanne Muis - sanne.muis@deltares.nl  
 Natalia Aleksandrova - natalia.aleksandrova@deltares.nl
 
 ## References
