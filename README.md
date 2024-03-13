@@ -22,35 +22,24 @@ The modelling of global tides and surges is done by using the GTSMv3.0 model. Th
 The model simulation consists of a sequence of bash scripts with SLURM commands that calls the relevant python scripts (or the Delft3D FM singularity container in case of model simulations).
 
 - `p1a_sbatch_download_era5.sh` - for downloading ERA5 data (see p1a download_CDS_ERA5.py below)
-- `p1b_sbatch_download_tides.sh` for downloading tidal data (see p1b dowload_CDS_tides.py below)
-- `p1c_checkout_gtsm3_cmip6.sh` checkout gtsm3_cmip6 repos to the `modelfiles` folder, this contains the files needed to run the GTSM model and template files for model settings 
-- `p2_sbatch_preprocess_ERA5.sh` converts the ERA5 data into FM input format (see p2_sbatch_preprocess_ERA5.py below)
-- `p3_prepare_run.sh` prepares the GTSM run by copying model input files and adjusting the template (see p3_prepare_run.py below)
-- `p4_sbatch_postprocess.sh` converts model output to timeseries files containing 10-min total water levels and surge levels (see p4_postprocess_FM.py below)
-- `p5a_sbatch_resample.sh` resamples 10-min timeseries to hourly timeseries (see p5a_resample_TS.py below)
-- `p5b_sbatch_resample_dailymax.sh` resamples 10-min timeseries of total water levels to daily maxima timeseries (see p5b_resample_TS_DailyMax.py below)
+- `p1b_sbatch_download_tides.sh` - for downloading tidal data (see p1b dowload_CDS_tides.py below)
+- `p1c_checkout_gtsm3_cmip6.sh` - checkout gtsm3_cmip6 repos to the `modelfiles` folder, this contains the files needed to run the GTSM model and template files for model settings 
+- `p2_sbatch_preprocess_ERA5.sh` - converts the ERA5 data into FM input format (see p2_sbatch_preprocess_ERA5.py below)
+- `p3_prepare_run.sh` - prepares the GTSM run by copying model input files and adjusting the template (see p3_prepare_run.py below)
+- `p4_sbatch_postprocess.sh` - converts model output to timeseries files containing 10-min total water levels and surge levels (see p4_postprocess_FM.py below)
+- `p5a_sbatch_resample.sh` - resamples 10-min timeseries to hourly timeseries (see p5a_resample_TS.py below)
+- `p5b_sbatch_resample_dailymax.sh` - resamples 10-min timeseries of total water levels to daily maxima timeseries (see p5b_resample_TS_DailyMax.py below)
 
 ### Python scripts
 The Python scripts submitted by the bash script are used to download and preprocess the meteorological forcing, to prepare the GTSM simulations, and to postprocess the results. 
 
-- `p1a download_ERA5.py` functionality to download ERA5 using the CDS API (note that a key-file is required)
-- `p1b dowload_tides.py` functionality to download GTSM-tides using the CDS API (note that a key-file is required)
-- `p2_preprocess_ERA5.py` functionality to convert downloaded data into suitable forcing input for a Delft3D FM model
-    - correct longitude range [-180 to 180] and overlap
-    - merge daily files to monthly including spinup
-    - correct varnames and attributes
-	- include spinup in yearly files
-    - set initial timesteps to zero to allow for SLR correction
-- `p3_prepare_run.py` functionality to prepare the GTSM model 
-    - copy model files and use template to change folder paths
-	- this scripts assumes `Tunit=S` in the mdu file
-- `p4_postprocess_FM.py` functionality to proprocess GTSM simulation results
-    - remove spinup
-	- convert netcdf output into CDS appropiate format 
-    - compute residual water levels and monthly/annual means
-    - plotting results (min, max, mean) on global map
-  
-
+- `p1a download_ERA5.py` - functionality to download ERA5 data (atm. pressure and wind fields) using the CDS API (note that a key-file is required)
+- `p1b dowload_tides.py` - functionality to download GTSM-derived tidal level timeseries using the CDS API (note that a key-file is required)
+- `p2_preprocess_ERA5.py` - functionality to convert downloaded data into correct format of forcing input for the GTSM (Delft3D-FM) model. This includes prescribing correct longitude ranges, merging yearly forcing data in one file with spinup period included, ensuring correct variable names and attributes.
+- `p3_prepare_run.py` - functionality to prepare the GTSM model runs by copying model input files and adjusting template files with model settings in the directory with model runs
+- `p4_postprocess_FM.py` - functionality to postprocess the data from the GTSM model results into 10-min timeseries data files for total water levels and surge levels with appropriate attributes
+- `p5a_resample_TS.py` - functionality to resample 10-min timeseries data to hourly timeseries (total water level and surge).
+- `p5b_resample_TS_DailyMax.py` - functionality to resample 10-min timeseries data to daily maxima timeseries (total water levels only).
 
 ## Software
 ### Delft3D Flexible Mesh
