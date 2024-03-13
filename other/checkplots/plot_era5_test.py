@@ -10,7 +10,7 @@ sys.path.append("..")
 from path_dict import path_dict
 dir_output = path_dict['meteo_fm']
 
-for year in range(1951,1952):
+for year in range(2023,2023):
 
     for par in ['msl','u10','v10']:
 
@@ -20,7 +20,7 @@ for year in range(1951,1952):
 
             for varkey in data_xr_check.data_vars:
 
-                for tm in [0,1,2,25,1000]:
+                for tm in [0,1,2,25,1000,8600]:
 
                     print(f'plotting {varkey}')
 

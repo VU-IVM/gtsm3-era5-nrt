@@ -1,6 +1,5 @@
 # ---
 # Author: N. Aleksandrova
-# Contact: natalia.aleksandrova@deltares.nl
 # Date created: February 2024
 # remarks: this script is for collecting all statistical values derived from the GTSM-ERA5-E dataset and assembling it in one netCDF file.
 
