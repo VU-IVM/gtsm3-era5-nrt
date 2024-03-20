@@ -46,7 +46,7 @@ def resampleTS(year, mnth):
 
         # get timeseries
         print(f'Loading timeseries of {name}...')
-        file_nc = os.path.join(dir_postproc,f'timeseries-GTSM-ERA5/{name}/era5_reanalysis_{name}_10min_{year}_{mnth:02d}_v1.nc')
+        file_nc = os.path.join(dir_postproc,f'timeseries-GTSM-ERA5/{name}/reanalysis_{name}_10min_{year}_{mnth:02d}_v1.nc')
         ds = xr.open_dataset(file_nc,chunks={'stations': 1000}); ds.close()
         ds.load()
 
