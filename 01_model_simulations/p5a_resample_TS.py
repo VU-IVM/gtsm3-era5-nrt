@@ -51,10 +51,10 @@ def resampleTS(year, mnth):
         ds.load()
 
         # remove unnecessary coordinates
-        try:
-            ds = ds.drop(['station_name'])
-        except ValueError:
-            print('Key station_name already removed')
+        #try:
+        #    ds = ds.drop(['station_name'])
+        #except ValueError:
+        #    print('Key station_name already removed')
 
         #set coordinates
         ds = ds.set_coords(("station_x_coordinate", "station_y_coordinate"))       
