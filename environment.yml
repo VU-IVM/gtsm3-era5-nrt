@@ -41,13 +41,14 @@ dependencies:
   - brotli-python=1.0.9
   - bzip2=1.0.8
   - c-ares=1.19.1
-  - ca-certificates=2024.2.2
+  - ca-certificates=2024.7.4
   - cached-property=1.5.2
   - cached_property=1.5.2
   - cairo=1.16.0
   - cartopy=0.21.1
-  - cdsapi=0.6.1
-  - certifi=2024.2.2
+  - cdsapi=0.7.0
+  - cads-api-client=1.2.0
+  - certifi=2024.7.4
   - cffi=1.15.1
   - cftime=1.6.2
   - charset-normalizer=3.2.0
@@ -221,7 +222,7 @@ dependencies:
   - nss=3.89
   - numpy=1.25.1
   - openjpeg=2.5.0
-  - openssl=3.2.1
+  - openssl=3.3.1
   - orc=1.9.0
   - overrides=7.4.0
   - packaging=23.1
