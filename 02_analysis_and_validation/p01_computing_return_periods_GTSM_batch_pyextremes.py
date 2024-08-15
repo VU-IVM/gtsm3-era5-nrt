@@ -122,12 +122,19 @@ def compute_rv_eva(yr_start,yr_end,st_start,st_end,mode):
                 ds = xr.open_dataset(file_nc,chunks={'stations': 1000}); ds.close()
 
             # select specific stations
-            data_sel = ds.sel(stations=slice(settings['st_start'],settings['st_end']))
+            data_sel = ds.sel(stations=slice(settings['st_start'],settings['st_end']),drop=True)
+            del ds
+            
+            try:
+                data_sel = data_sel.drop('station_name')
+            except:
+                pass
                 
             if ((year == settings['yearmin']) & (mnth == 1)):
                 ds_gtsm = data_sel
             else:
                 ds_gtsm = xr.concat([ds_gtsm,data_sel],dim="time")
+            del data_sel
                 
     ds_gtsm = ds_gtsm.chunk({"time": -1, "stations": "auto"})
                 
