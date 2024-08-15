@@ -37,16 +37,25 @@ def convert2FM(yr):
     file_nc_list.sort()
     print(f'>> opening multifile dataset of {len(file_nc_list)} files matching "{dir_data}" (can take a while with lots of files): ',end='')
     dtstart = dt.datetime.now()
-    data_xr = xr.open_mfdataset(file_nc_list,
+    
+    # preprocess function to adjust format of the ERA5 file when valid_time is present instead of time variable
+    def preprocess(x):
+      if "valid_time" in x.coords:
+          x = x.rename({'valid_time':"time"})
+      if "expver" in x.coords:
+          x = x.drop({"expver"})
+      return x
+    
+    data_xr = xr.open_mfdataset(file_nc_list,preprocess=preprocess,
                                 #parallel=True, #TODO: speeds up the process, but often "OSError: [Errno -51] NetCDF: Unknown file format" on WCF
                                 chunks={'time':1})
     data_xr.close()
     print(f'{(dt.datetime.now()-dtstart).total_seconds():.2f} sec')
         
-    data_xr = data_xr.sel(time=time_slice)
+    data_xr = data_xr.sel(time=time_slice,drop=True)
     if data_xr.get_index('time').duplicated().any():
         print('dropping duplicate timesteps')
-        data_xr = data_xr.sel(time=~data_xr.get_index('time').duplicated()) #drop duplicate timesteps
+        data_xr = data_xr.sel(time=~data_xr.get_index('time').duplicated(),drop=True) #drop duplicate timesteps
     
     #check if there are times selected
     if len(data_xr.time)==0:
