@@ -4,15 +4,15 @@ import os
 import matplotlib.pyplot as plt
 import sys
 
-sys.path.append("..")
+sys.path.append("../..")
 #sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), os.path.pardir)))
 
 from path_dict import path_dict
 dir_output = path_dict['meteo_fm']
 
-for year in range(2023,2023):
+for year in range(1952,1979):
 
-    for par in ['msl','u10','v10']:
+    for par in ['msl']:#,'u10','v10']:
 
         file_out = os.path.join(dir_output,f'ERA5_CDS_atm_{par}_{year-1}-12-15_{year+1}-01-01.nc')
 
@@ -20,7 +20,7 @@ for year in range(2023,2023):
 
             for varkey in data_xr_check.data_vars:
 
-                for tm in [0,1,2,25,1000,8600]:
+                for tm in range(362,9000,12):
 
                     print(f'plotting {varkey}')
 
@@ -29,3 +29,5 @@ for year in range(2023,2023):
                     data_xr_check[varkey].isel(time=tm).plot(ax=ax1)
 
                     fig.savefig(os.path.join(dir_output,'checkplots',f'Plot_{varkey}_{year}_timestamp_{tm}'))
+                    
+                    plt.close()
