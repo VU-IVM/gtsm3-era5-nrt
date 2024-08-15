@@ -11,6 +11,7 @@ import sys
 import cartopy.crs as ccrs
 import matplotlib.pyplot as plt
 import sys
+import numpy as np
 sys.path.append("..")
 from path_dict import path_dict
 
@@ -42,44 +43,41 @@ def resample_and_plot(outpath):
         v1 = ds_min.waterlevel.values
         v2 = ds_max.waterlevel.values
         
-    # plot WORLD
-    proj = ccrs.PlateCarree()
-    fig, axes = plt.subplots(ncols=1, nrows=3,figsize=(20,7), subplot_kw={'projection': proj})
-    sc0=axes[0].scatter(x,y,s=10,c=v0,transform=proj,vmin=-0.5,vmax=0.5)
-    fig.colorbar(sc0,ax=axes[0])
-    axes[0].title.set_text('mean (m)')
-    sc1=axes[1].scatter(x,y,s=10,c=v1,transform=proj,vmin=-2,vmax=0)
-    fig.colorbar(sc1,ax=axes[1])
-    axes[1].title.set_text('min (m)')
-    sc2=axes[2].scatter(x,y,s=10,c=v2,transform=proj,vmin=0,vmax=2)
-    fig.colorbar(sc2,ax=axes[2])
-    axes[2].title.set_text('max (m)')
-    for ax in axes.flat:
-        ax.set_global()
-        ax.coastlines()
-    #fig.savefig(outpath.replace('.nc','.png'))
+    # # plot WORLD
+    # proj = ccrs.PlateCarree()
+    # fig, axes = plt.subplots(ncols=1, nrows=3,figsize=(20,7), subplot_kw={'projection': proj})
+    # sc0=axes[0].scatter(x,y,s=10,c=v0,transform=proj,vmin=-0.5,vmax=0.5)
+    # fig.colorbar(sc0,ax=axes[0])
+    # axes[0].title.set_text('mean (m)')
+    # sc1=axes[1].scatter(x,y,s=10,c=v1,transform=proj,vmin=-2,vmax=0)
+    # fig.colorbar(sc1,ax=axes[1])
+    # axes[1].title.set_text('min (m)')
+    # sc2=axes[2].scatter(x,y,s=10,c=v2,transform=proj,vmin=0,vmax=2)
+    # fig.colorbar(sc2,ax=axes[2])
+    # axes[2].title.set_text('max (m)')
+    # for ax in axes.flat:
+    #     ax.set_global()
+    #     ax.coastlines()
+    # fig.savefig(outpath.replace('.nc','.png'))
     
     # plot NL
-    fig, axes = plt.subplots(ncols=1, nrows=3,figsize=(20,7), subplot_kw={'projection': proj})
-    sc0=axes[0].scatter(x,y,s=10,c=v0,transform=proj,vmin=-0.5,vmax=0.5)
-    fig.colorbar(sc0,ax=axes[0])
-    axes[0].title.set_text('mean (m)')
-    sc1=axes[1].scatter(x,y,s=10,c=v1,transform=proj,vmin=-2,vmax=0)
-    fig.colorbar(sc1,ax=axes[1])
-    axes[1].title.set_text('min (m)')
-    sc2 = axes[2].scatter(x,y,s=10,c=v2,transform=proj,vmin=0,vmax=2)
-    fig.colorbar(sc2,ax=axes[2])
-    axes[2].title.set_text('max (m)')
-    for ax in axes.flat:
-        ax.set_extent([0, 10, 45, 55], ccrs.PlateCarree())
-        ax.coastlines()
-    fig.savefig(outpath.replace('.nc','_NL.png'))
+    # fig, axes = plt.subplots(ncols=1, nrows=3,figsize=(20,7), subplot_kw={'projection': proj})
+    # sc0=axes[0].scatter(x,y,s=10,c=v0,transform=proj,vmin=-0.5,vmax=0.5)
+    # fig.colorbar(sc0,ax=axes[0])
+    # axes[0].title.set_text('mean (m)')
+    # sc1=axes[1].scatter(x,y,s=10,c=v1,transform=proj,vmin=-2,vmax=0)
+    # fig.colorbar(sc1,ax=axes[1])
+    # axes[1].title.set_text('min (m)')
+    # sc2 = axes[2].scatter(x,y,s=10,c=v2,transform=proj,vmin=0,vmax=2)
+    # fig.colorbar(sc2,ax=axes[2])
+    # axes[2].title.set_text('max (m)')
+    # for ax in axes.flat:
+    #     ax.set_extent([0, 10, 45, 55], ccrs.PlateCarree())
+    #     ax.coastlines()
+    # fig.savefig(outpath.replace('.nc','_NL.png'))
 
 
 def exportTWL(dataset, outpath, raw_data):
-    keys = list(dataset.keys()) # remove all variables except water level
-    keys.remove('waterlevel')
-    dataset = dataset.drop(keys)
     print(dataset)
     dataset.waterlevel.attrs = {'long_name': 'sea_surface_height_above_mean_sea_level',
                               'units': 'm',
@@ -95,7 +93,7 @@ def exportTWL(dataset, outpath, raw_data):
                             'long_name': 'time',
                             'short_name': 'time'}
     dataset['waterlevel'] = dataset.waterlevel.round(3)
-    dataset = dataset.assign_coords({'stations': dataset.stations})
+    #dataset = dataset.assign_coords({'stations': dataset.stations})
     encoding={'stations':{'dtype': 'uint16', 'complevel': 3, 'zlib': True},
                 'station_y_coordinate': {'dtype': 'int32', 'scale_factor': 0.001, '_FillValue': -999, 'complevel': 3, 'zlib': True},
                 'station_x_coordinate': {'dtype': 'int32', 'scale_factor': 0.001, '_FillValue': -999, 'complevel': 3, 'zlib': True},
@@ -210,21 +208,43 @@ def raw2nc(year, mnth, scenario):
       texp = 'historical'
     exp = 'reanalysis'
     
-    for i in [tpath, wpath, spath]:
-        if not os.path.exists(i):
-            os.makedirs(i)
+    for ipath in [tpath, wpath, spath]:
+        #if not os.path.exists(ipath):
+        os.makedirs(ipath, exist_ok=True)
+    del ipath
+                
+    for ipath in [wpath_stats, spath_stats]:
+        #if not os.path.exists(ipath):
+        os.makedirs(ipath, exist_ok=True)
+    del ipath
             
-    for i in [wpath_stats, spath_stats]:
-        if not os.path.exists(i):
-            os.makedirs(i)
-            
-    ds = xr.open_dataset(inpath); ds.close()
+    ds = xr.open_dataset(inpath);
     print('ds loaded')   
     
     date = datetime(year, mnth , 1)
     print('Processing {}'.format(date.strftime('%Y-%m')))
-    mth = ds.sel(time='{}-{}'.format(date.strftime('%Y'), date.strftime('%m')))
-    
+    mth = ds.sel(time='{}-{}'.format(date.strftime('%Y'), date.strftime('%m')),drop=True)
+    mth.load()
+    ds.close()
+
+    keys = list(mth.keys()) # remove all variables except water level
+    keys.remove('waterlevel')
+    mth = mth.drop(keys)
+    mth = mth.assign_coords({'stations': mth.stations})
+
+    # subset stations to match stations used in the previous GTSM-ERA5 dataset - filtered stations to remove erroneous points (e.g. too much inland etc.)
+    print('Loading dataset with a list of stations...')
+    dir_postproc = path_dict['postproc']
+    file_nc_cds = os.path.join(dir_postproc,f'timeseries-GTSM-ERA5-hourly-1979-2018/waterlevel/reanalysis_waterlevel_hourly_1979_01_v1.nc')
+    ds_cds = xr.open_dataset(file_nc_cds); 
+
+    # remove stations
+    print('removing stations...')
+    unique_stations = np.setxor1d(mth['stations'], ds_cds['stations'])
+    mth = mth.drop_sel(stations=unique_stations)   
+    ds_cds.close()
+
+    # file paths
     tfile = os.path.join(tpath,'{}_tide_{}_{}_v1.nc'.format(texp,date.strftime('%Y'), date.strftime('%m')))   
     sfile = os.path.join(spath,'{}_surge_10min_{}_{}_v1.nc'.format(exp,date.strftime('%Y'), date.strftime('%m')))
     wfile = os.path.join(wpath,'{}_waterlevel_10min_{}_{}_v1.nc'.format(exp,date.strftime('%Y'),date.strftime('%m')))
@@ -233,6 +253,7 @@ def raw2nc(year, mnth, scenario):
         print('writing: ', wfile)
         exportTWL(mth, wfile, raw_data)
     resample_and_plot(wfile)
+    del mth
     if not os.path.exists(sfile):
         tf = xr.open_dataset(tfile, chunks={'stations': 1000}); tf.close() 
         wf = xr.open_dataset(wfile, chunks={'stations': 1000}); wf.close()

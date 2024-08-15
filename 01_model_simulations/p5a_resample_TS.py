@@ -23,16 +23,21 @@ def resampleTS(year, mnth):
     dir_out_wl_10min = os.path.join(dir_postproc,'timeseries-GTSM-ERA5-10min','waterlevel') 
     dir_out_surge_10min = os.path.join(dir_postproc,'timeseries-GTSM-ERA5-10min','surge')
 
+    os.makedirs(dir_out_wl, exist_ok=True)
+    os.makedirs(dir_out_surge, exist_ok=True)
+    os.makedirs(dir_out_wl_10min, exist_ok=True)
+    os.makedirs(dir_out_surge_10min, exist_ok=True)
+
     ofile_wl_1hr = f'{dir_out_wl}/reanalysis_waterlevel_hourly_{year}_{mnth:02d}_v1.nc' #output file
     ofile_surge_1hr = f'{dir_out_surge}/reanalysis_surge_hourly_{year}_{mnth:02d}_v1.nc' #output file
     
     ofile_wl_10min = f'{dir_out_wl_10min}/reanalysis_waterlevel_10min_{year}_{mnth:02d}_v1.nc' #output file
     ofile_surge_10min = f'{dir_out_surge_10min}/reanalysis_surge_10min_{year}_{mnth:02d}_v1.nc' #output file
     
-    # get list of stations that are included in the previous dataset on CDS
-    print('Loading dataset with a list of stations...')
-    file_nc_cds = os.path.join(dir_postproc,f'timeseries-GTSM-ERA5-hourly-1979-2018/waterlevel/reanalysis_waterlevel_hourly_1979_01_v1.nc')
-    ds_cds = xr.open_dataset(file_nc_cds); ds_cds.close()
+    # # get list of stations that are included in the previous dataset on CDS
+    # print('Loading dataset with a list of stations...')
+    # file_nc_cds = os.path.join(dir_postproc,f'timeseries-GTSM-ERA5-hourly-1979-2018/waterlevel/reanalysis_waterlevel_hourly_1979_01_v1.nc')
+    # ds_cds = xr.open_dataset(file_nc_cds); ds_cds.close()
     
     for name in {'waterlevel','surge'}:
     
@@ -59,10 +64,10 @@ def resampleTS(year, mnth):
         #set coordinates
         ds = ds.set_coords(("station_x_coordinate", "station_y_coordinate"))       
 
-        # remove stations
-        print('removing stations...')
-        unique_stations = np.setxor1d(ds['stations'], ds_cds['stations'])
-        ds = ds.drop_sel(stations=unique_stations)            
+        # # remove stations
+        # print('removing stations...')
+        # unique_stations = np.setxor1d(ds['stations'], ds_cds['stations'])
+        # ds = ds.drop_sel(stations=unique_stations)            
     
         # update general attributes
         ds.attrs['contact'] = '', #'Please contact Copernicus User Support on the Copernicus Climate Change Service website ( https://climate.copernicus.eu/).'
