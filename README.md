@@ -70,6 +70,8 @@ The mean sea level is prescribed in yearly increments to include sea level rise.
 
 The mean sea level rise (relative to 1986-2005) fields were converted to a pressure field that is used as an input to the GTSM model runs. For simulations with atmospheric forcing (ERA5), a correction on pressure fields is introduced by subtracting the mean sea-level pressure field (MSLP) over 1986–2005 (based on ERA-Interim because ERA5 was not available at the time when these input files were created). This is done to maintain the MSL in the model as relative to 1986-2005 mean. Essentially, the pressure field in the GTSM-ERA5 simulations consists of three components that are summed up: ERA5 atmospheric pressure, MSL correction (1986-2005) and pressure correction corresponding to the sea level rise. At model initialization, the first two components are set to 0, which results in the correct initial mean sea level in the model simulation for the given year (correct total volume of water). This approach is designed to mimic sea level rise within the GTSM model.
 
+The bathymetry dataset in the GTSMv3.0 model is based on GEBCO (2014), which is referenced to MSL. While there are newer (and possibly more accurate) global bathymetry datasets from GEBCO, we choose to use this dataset to stay consistent with the previous GTSM-ERA5 runs and to keep the same bathymetry source that the GTSMv3.0 model was calibrated with.
+
 Both mean sea level and vertical reference files can be downloaded [here](https://doi.org/10.5281/zenodo.3948088).
 
 ### Validation data
