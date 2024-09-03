@@ -37,9 +37,9 @@ dir_tide = os.path.join('/gpfs/work1/0/einf3499/03_tides_CDS')
 dir_msl_cds = os.path.join(dir_data,'yearly_MSL_from_CDS')
 
 # station ids
-#stations_gtsm = [18227] # Nigeria
+stations_gtsm = [18227] # Nigeria
 #stations_gtsm = [24113] # Norway
-stations_gtsm = [15349] # Houston
+#stations_gtsm = [15349] # Houston
 
 def read_his_file(path):
     ds = xr.open_dataset(path)
@@ -53,9 +53,15 @@ def read_his_file(path):
 
 # Open model data
 dir_modeloutput = path_dict['modelruns']
-path_modeloutput = os.path.join(dir_modeloutput, f'model_input_ERA5_1979','output','gtsm_fine_0000_his.nc')
+path_modeloutput = os.path.join(dir_modeloutput, f'model_input_ERA5_1978','output','gtsm_fine_0000_his.nc')
 ds_modelrun = read_his_file(path_modeloutput)
 ds_modelrun_sel = ds_modelrun.sel(stations=stations_gtsm,drop=True).squeeze()
+
+## Checking the results for loc 18227
+
+
+##
+
 
 ### Load raw data from previous (CDS) project
 path_modeloutput = os.path.join(dir_wl_cds_raw, f'model_input_ERA5_1979','gtsm_fine_0000_his.nc')
