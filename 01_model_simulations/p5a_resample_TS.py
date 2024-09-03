@@ -34,10 +34,6 @@ def resampleTS(year, mnth):
     ofile_wl_10min = f'{dir_out_wl_10min}/reanalysis_waterlevel_10min_{year}_{mnth:02d}_v1.nc' #output file
     ofile_surge_10min = f'{dir_out_surge_10min}/reanalysis_surge_10min_{year}_{mnth:02d}_v1.nc' #output file
     
-    # # get list of stations that are included in the previous dataset on CDS
-    # print('Loading dataset with a list of stations...')
-    # file_nc_cds = os.path.join(dir_postproc,f'timeseries-GTSM-ERA5-hourly-1979-2018/waterlevel/reanalysis_waterlevel_hourly_1979_01_v1.nc')
-    # ds_cds = xr.open_dataset(file_nc_cds); ds_cds.close()
     
     for name in {'waterlevel','surge'}:
     
@@ -55,19 +51,8 @@ def resampleTS(year, mnth):
         ds = xr.open_dataset(file_nc,chunks={'stations': 1000}); ds.close()
         ds.load()
 
-        # remove unnecessary coordinates
-        #try:
-        #    ds = ds.drop(['station_name'])
-        #except ValueError:
-        #    print('Key station_name already removed')
-
         #set coordinates
-        ds = ds.set_coords(("station_x_coordinate", "station_y_coordinate"))       
-
-        # # remove stations
-        # print('removing stations...')
-        # unique_stations = np.setxor1d(ds['stations'], ds_cds['stations'])
-        # ds = ds.drop_sel(stations=unique_stations)            
+        ds = ds.set_coords(("station_x_coordinate", "station_y_coordinate"))                
     
         # update general attributes
         ds.attrs['contact'] = '', #'Please contact Copernicus User Support on the Copernicus Climate Change Service website ( https://climate.copernicus.eu/).'
