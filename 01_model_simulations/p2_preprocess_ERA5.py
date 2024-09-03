@@ -32,8 +32,10 @@ def convert2FM(yr):
     os.makedirs(dir_output,exist_ok=True)
     
     #generating file list
-    dir_data = os.path.join(input_dir,'ERA5_CDS_atm_*-*-*.nc')
+    dir_data = os.path.join(input_dir,f'ERA5_CDS_atm_{yr}-*-*.nc')
     file_nc_list = glob.glob(dir_data)
+    file_nc_list = file_nc_list + glob.glob(os.path.join(input_dir,f'ERA5_CDS_atm_{int(yr)-1}-12-*.nc'))
+    file_nc_list = file_nc_list + glob.glob(os.path.join(input_dir,f'ERA5_CDS_atm_{int(yr)+1}-01-01.nc'))
     file_nc_list.sort()
     print(f'>> opening multifile dataset of {len(file_nc_list)} files matching "{dir_data}" (can take a while with lots of files): ',end='')
     dtstart = dt.datetime.now()
