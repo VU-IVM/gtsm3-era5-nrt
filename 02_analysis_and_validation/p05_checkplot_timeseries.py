@@ -92,8 +92,8 @@ c = np.maximum(abslon, abslat)
 station = ds.stations.values[iloc[0]]
 '''
 
-year_start = 1980
-year_end = 1981
+year_start = 2023
+year_end = 2025
 
 #load GTSM timeseries for selected stations
 for year in range(year_start,year_end):
@@ -104,7 +104,7 @@ for year in range(year_start,year_end):
             file_nc = os.path.join(dir_surgets,f'reanalysis_surge_hourly_{year}_{mnth:02d}_v1.nc')
             #file_nc = os.path.join(dir_surgets,f'reanalysis_surge_10min_{year}_{mnth:02d}_v1.nc')
             ds = xr.open_dataset(file_nc,chunks={'stations': 1000}); 
-            ds = ds.drop('station_name')
+            #ds = ds.drop('station_name')
             #file_nc_old = os.path.join(dir_surgets_old,f'reanalysis_surge_hourly_{year}_{mnth:02d}_v1.nc')
             #file_nc_old = os.path.join(dir_surgets_old,f'reanalysis_surge_10min_{year}_{mnth:02d}_v1.nc')
             #ds_old = xr.open_dataset(file_nc_old,chunks={'stations': 1000}); 
@@ -123,7 +123,7 @@ for year in range(year_start,year_end):
         ds=ds.sel(stations=stations_gtsm,drop=True)
         ds.load()
         
-        if ((year == 1950) & (mnth == 1)):
+        if ((year == year_start) & (mnth == 1)):
             ds_gtsm = ds
             #ds_gtsm_old = ds_old
         else:
@@ -144,11 +144,11 @@ for year in range(year_start,year_end):
 #ds_gtsm=ds_gtsm.set_coords(("station_x_coordinate", "station_y_coordinate"))
 
 # make overview plots per location
-for ss in range(0,len(stations_gtsm)):
+for ss in range(5,len(stations_gtsm)):
 
     print('processing station ',ss,' out of ', len(stations_gtsm))
 
-    ts_gtsm = ds_gtsm.surge.sel(stations=stations_gtsm[ss]).sel(time=slice('01-01-1950','31-12-2022'))
+    ts_gtsm = ds_gtsm.surge.sel(stations=stations_gtsm[ss])#.sel(time=slice('01-01-1950','31-12-2022'))
     #ts_gtsm_old = ds_gtsm_old.surge.sel(stations=stations_gtsm[ss]).sel(time=slice('01-01-1950','31-12-2022'))
     
 
@@ -170,7 +170,7 @@ for ss in range(0,len(stations_gtsm)):
     ax1.grid(); ax1.title.set_text('Full timeseries')
 
 
-    figname = f'TS_station_{str(stations_gtsm[ss]).zfill(5)}_surge_1977_1980.png' 
+    figname = f'TS_station_{str(stations_gtsm[ss]).zfill(5)}_surge_{year_start}_{year_end}.png' 
     fig.savefig(f'{dir_ts}/{figname}')
 
 

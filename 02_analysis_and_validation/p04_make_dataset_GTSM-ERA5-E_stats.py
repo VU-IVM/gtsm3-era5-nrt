@@ -22,10 +22,10 @@ if __name__ == "__main__":
     # location of EVA and percentiles data
     dir_postproc = path_dict['postproc']
     dir_eva_main = os.path.join(dir_postproc,'EVA-GTSM-ERA5')
-    dir_eva = os.path.join(dir_postproc,'EVA-GTSM-ERA5',f'period_1950_2022_1hr_v2') 
+    dir_eva = os.path.join(dir_postproc,'EVA-GTSM-ERA5',f'period_1950_2024_1hr_v4') 
     
     #locate .csv files containing extremes
-    filenames = 'ds_GTSM-ERA5_1950_2022_stations*eva.csv'
+    filenames = 'ds_GTSM-ERA5_1950_2024_stations*eva.csv'
     dir_data = os.path.join(dir_eva,filenames)
     file_list = glob.glob(dir_data)
     file_list.sort()
@@ -49,8 +49,8 @@ if __name__ == "__main__":
 
     # store extreme value analysis MLE model fit parameters 
     ds['eva_param_scale'] = (('stations'), ds_gtsm_eva['scale'].tolist())
-    ds['eva_param_shape'] = (('stations'), ds_gtsm_eva['c'].tolist())
-    ds['eva_param_loc'] = (('stations'), ds_gtsm_eva['thresh'].tolist())
+    ds['eva_param_shape'] = (('stations'), ds_gtsm_eva['shape'].tolist())
+    ds['eva_param_loc'] = (('stations'), ds_gtsm_eva['location'].tolist())
 
     # store extreme values
     cols_bf = []; cols_low = []; cols_high = [];
@@ -67,36 +67,37 @@ if __name__ == "__main__":
     ds = ds.rename({'station_x_coordinate':'lon','station_y_coordinate':'lat'})
 
     # assign coordinate attributes
-    ds.station_x_coordinate.attrs = {'units': 'degrees_east', 'standard_name': 'longitude', 'long_name': 'longitude'}
-    ds.station_y_coordinate.attrs = {'units': 'degrees_north', 'standard_name': 'latitude', 'long_name': 'latitude'}
+    ds.lon.attrs = {'units': 'degrees_east', 'standard_name': 'longitude', 'long_name': 'longitude'}
+    ds.lat.attrs = {'units': 'degrees_north', 'standard_name': 'latitude', 'long_name': 'latitude'}
     ds.stations.attrs = {'units': '', 'long_name': 'station_id'}
+    ds.quantile.attrs = {'units': '', 'long_name': 'quantile'}
     ds.return_period.attrs = {'units': 'years', 'long_name': 'return_period'}
-    ds.wl_quantiles.attrs = {'units': 'm', 'standard_name': 'sea_surface_height_above_mean_sea_level', 'long_name': 'still_water_level_statistics_quantiles', 'description': 'still water level above mean sea level statistical value corresponding to a given quantile based on detrended timeseries over 1950-2022'}
+    ds.wl_quantiles.attrs = {'units': 'm', 'standard_name': 'sea_surface_height_above_mean_sea_level', 'long_name': 'still_water_level_statistics_quantiles', 'description': 'Still water level above mean sea level statistical value corresponding to a given quantile based on detrended GTSM-ERA5-E timeseries over 1950-2024. Timeseries were detrended to remove the sea level rise component by subtracting yearly means for each year of the data. The vertical reference of the data is Mean Sea Level. The underlying timeseries data originates from the GTSMv3.0 model runs forced with ERA5 reanalysis atmospheric data, the timeseries are available at DOI: 10.24381/cds.a6d42d60'}
     ds.eva_param_scale.attrs = {'units': '','long_name':'scale_parameter', 'description': 'Scale parameter of the extreme value analysis, POT-GPD method, MLE model'}
     ds.eva_param_shape.attrs = {'units': '','long_name':'shape_parameter', 'description': 'Shape parameter of the extreme value analysis, POT-GPD method, MLE model'}
     ds.eva_param_loc.attrs = {'units': '','long_name':'location_parameter', 'description': 'Location parameter of the extreme value analysis, POT-GPD method, MLE model'}
-    ds.wl_extreme_bestfit.attrs = {'units': 'm','standard_name': 'sea_surface_height_above_mean_sea_level','long_name':'extreme_water_level_bestfit', 'description': 'Extreme return value of the still water level based on detrended timeseries over 1950-2022 - best-fit value'}
-    ds.wl_extreme_5perc.attrs = {'units': 'm','standard_name': 'sea_surface_height_above_mean_sea_level','long_name':'extreme_water_level_lower_bound', 'description': 'Extreme return value of the still water level based on detrended timeseries over 1950-2022 - lower bound, 5th percentile value'}
-    ds.wl_extreme_95perc.attrs = {'units': 'm','standard_name': 'sea_surface_height_above_mean_sea_level', 'long_name':'extreme_water_level_upper_bound', 'description': 'Extreme return value of the still water level based on detrended timeseries over 1950-2022 - higher bound, 95th percentile value'}
+    ds.wl_extreme_bestfit.attrs = {'units': 'm','standard_name': 'sea_surface_height_above_mean_sea_level','long_name':'extreme_water_level_bestfit', 'description': 'Extreme return value of the still water level based on detrended timeseries over 1950-2024 - best-fit value. EVA performed using Peak-Over-Threshold method with fixed threshold of 99th percentile. Timeseries were detrended to remove the sea level rise component by subtracting yearly means for each year of the data. The vertical reference of the data is Mean Sea Level. The underlying timeseries data originates from the GTSMv3.0 model runs forced with ERA5 reanalysis atmospheric data, the timeseries are available at DOI: 10.24381/cds.a6d42d60'}
+    ds.wl_extreme_5perc.attrs = {'units': 'm','standard_name': 'sea_surface_height_above_mean_sea_level','long_name':'extreme_water_level_lower_bound', 'description': 'Extreme return value of the still water level based on detrended timeseries over 1950-2024 - lower bound, 5th percentile value. EVA performed using Peak-Over-Threshold method with fixed threshold of 99th percentile. Timeseries were detrended to remove the sea level rise component by subtracting yearly means for each year of the data. The vertical reference of the data is Mean Sea Level. The underlying timeseries data originates from the GTSMv3.0 model runs forced with ERA5 reanalysis atmospheric data, the timeseries are available at DOI: 10.24381/cds.a6d42d60'}
+    ds.wl_extreme_95perc.attrs = {'units': 'm','standard_name': 'sea_surface_height_above_mean_sea_level', 'long_name':'extreme_water_level_upper_bound', 'description': 'Extreme return value of the still water level based on detrended timeseries over 1950-2024 - higher bound, 95th percentile value. EVA performed using Peak-Over-Threshold method with fixed threshold of 99th percentile. Timeseries were detrended to remove the sea level rise component by subtracting yearly means for each year of the data. The vertical reference of the data is Mean Sea Level. The underlying timeseries data originates from the GTSMv3.0 model runs forced with ERA5 reanalysis atmospheric data, the timeseries are available at DOI: 10.24381/cds.a6d42d60'}
     
     # assign global attributes
     ds.attrs={'Conventions':'CF-1.8', 
-              'title': 'Statistics of detrended still water level timeseries for GTSM-ERA5-E dataset (1950-2022)', 
-              'history': 'This is version 1 of the dataset',
+              'title': 'Statistics of detrended still water level timeseries for GTSM-ERA5-E dataset (1950-2024)', 
+              'history': 'This is version 2 of the dataset',
               'institution': 'Deltares', 
               'source': 'GTSMv3 forced with ERA5 climate reanalysis',
               'comment':'',
-              'references':'DOI: 10.5281/zenodo.10671284',
+              'references':'DOI: 10.5281/zenodo.10671284, 10.24381/cds.a6d42d60',
               'featureType': 'point', 
               'id': 'GTSM-ERA5-E_water_level_statistics',
               'naming_authority': 'https://deltares.nl/en',
-              'summary': 'This dataset has been produced with the Global Tide and Surge Model (GTSM) version 3.0. GTSM was forced with wind speed and pressure fields from ERA5 climate reanalysis covering period 1950-2022. The timeseries at each output point globally were detrended (mean and annual mean removed) and statistics (quantiles and extreme values) were calculated. Extreme values were calculated using POT-GPD method fitted with MLE, using 0.99 percentile as threshold ',
+              'summary': 'This dataset has been produced with the Global Tide and Surge Model (GTSM) version 3.0. GTSM was forced with wind speed and pressure fields from ERA5 climate reanalysis covering period 1950-2024. The timeseries at each output point globally were detrended to remove the effect of sea level rise (annual means subtracted from timeseries for each year) and statistics (quantiles and extreme values) were calculated. Extreme values were calculated using the POT-GPD method fitted with MLE, using 99th percentile as threshold. The vertical reference of the data is Mean Sea Level.',
                 'date_created': str(datetime.utcnow()) + ' UTC', 
                 'date_modified': '', 
                 'project': 'Deltares Strategic Research Program', 
                 'acknowledgment': 'The development of this dataset was financed with Deltares Strategic Research Program.', 
                 'contact': 'natalia.aleksandrova@deltares.nl',
-                'license': 'Creative Commons Attribution 4.0 International ', 
+                'license': 'Creative Commons Attribution 4.0 International', 
                 'keywords': 'sea-level rise; climate change; water level; climate; tides; hydrography; global tide and surge model;', 
                 'geospatial_lat_min': ds.lat.min().round(3).astype(str).item(), 
                 'geospatial_lat_max': ds.lat.max().round(3).astype(str).item(), 
@@ -111,8 +112,8 @@ if __name__ == "__main__":
                 'geospatial_vertical_units': 'm', 
                 'geospatial_vertical_positive': 'up',
                 'time_coverage_start': '1950-01-01', 
-                'time_coverage_end': '2023-12-31'}
+                'time_coverage_end': '2024-12-31'}
 
     # save dataset
-    ofile = Path(os.path.join(dir_eva_main,'ds_GTSM-ERA5-E_1950-2022_stats.nc'))
+    ofile = Path(os.path.join(dir_eva_main,'ds_GTSM-ERA5-E_1950-2024_stats.nc'))
     ds.to_netcdf(ofile)

@@ -84,7 +84,7 @@ def compute_rv_eva(yr_start,yr_end,st_start,st_end,mode):
     print(f'{yr_start}-{yr_end}, stations: {st_start}-{st_end}, {mode}')
 
     # define quantiles to be computed and return periods
-    prcts = [0.05,0.10,0.25,0.50,0.75,0.90,0.95]
+    prcts = [0.01,0.05,0.10,0.25,0.50,0.75,0.90,0.95,0.99]
     rps = np.array([1,2,5,10,25,50,75,100])
     
     # location of yearly timeseries for all stations
@@ -99,7 +99,7 @@ def compute_rv_eva(yr_start,yr_end,st_start,st_end,mode):
     elif mode == '10min':
         dir_ds = os.path.join(dir_postproc,'timeseries-GTSM-ERA5-10min','waterlevel')
         dir_ds2 = os.path.join(dir_postproc,'timeseries-GTSM-ERA5-10min-1979-2018','waterlevel')
-    dir_out = os.path.join(dir_postproc,'EVA-GTSM-ERA5',f'period_{settings["yearmin"]}_{settings["yearmax"]}_{mode}_v2') #output dir
+    dir_out = os.path.join(dir_postproc,'EVA-GTSM-ERA5',f'period_{settings["yearmin"]}_{settings["yearmax"]}_{mode}_v4') #output dir
     os.makedirs(dir_out,exist_ok=True)
     os.makedirs(os.path.join(dir_out,'checkplots'),exist_ok=True)
 

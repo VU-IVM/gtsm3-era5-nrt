@@ -18,9 +18,11 @@ import matplotlib.ticker as tkr
 import matplotlib.pyplot as plt
 from mpl_toolkits.axes_grid1 import AxesGrid
 from cartopy.mpl.geoaxes import GeoAxes
+from cartopy.mpl.ticker import LongitudeFormatter, LatitudeFormatter
 import cartopy as crt
 from pyextremes import EVA
 from pyextremes.plotting import plot_return_values
+from pyextremes.extremes import get_return_periods
 
 # choose which plots to make
 make_global_plots = 0
@@ -41,7 +43,7 @@ def detrend(ds: xr.DataArray, plot = False):
 if __name__ == "__main__":   
     # EVA was performed for two periods that will be compared:
     settings = {'yearmin0': 1979,'yearmax0': 2018,'mode0':'1hr',
-                'yearmin1': 1950,'yearmax1': 2022,'mode1':'1hr'}
+                'yearmin1': 1950,'yearmax1': 2023,'mode1':'1hr'}
 
     rps =[1,10,50,100]    
     
@@ -53,7 +55,7 @@ if __name__ == "__main__":
     
     #specify directories where timeseries data is stored
     dir_eva0 = os.path.join(dir_postproc,'EVA-GTSM-ERA5',f'period_{settings["yearmin0"]}_{settings["yearmax0"]}_{settings["mode0"]}_v2')
-    dir_eva1 = os.path.join(dir_postproc,'EVA-GTSM-ERA5',f'period_{settings["yearmin1"]}_{settings["yearmax1"]}_{settings["mode1"]}_v2')
+    dir_eva1 = os.path.join(dir_postproc,'EVA-GTSM-ERA5',f'period_{settings["yearmin1"]}_{settings["yearmax1"]}_{settings["mode1"]}_v3')
     
     #locate .csv files
     filenames0 = 'ds_GTSM-ERA5_%s_%s_stations*eva.csv' % (str(settings['yearmin0']),str(settings['yearmax0']))
@@ -119,6 +121,9 @@ if __name__ == "__main__":
     cmap4 = mpl.colormaps['seismic']#.resampled(20)
     
     if make_global_plots:
+
+        plt.rcParams['figure.dpi'] = 300
+        plt.rcParams['savefig.dpi'] = 300
         
         # # Plotting percentiles - absolute and difference between periods
         quan95 = np.vstack((quan95_0,quan95_1))
@@ -129,16 +134,16 @@ if __name__ == "__main__":
         axes_class = (GeoAxes, dict(projection=crt.crs.Robinson()))
         axs = AxesGrid(fig, 111, axes_class=axes_class, nrows_ncols=(2, 1), share_all=True, axes_pad=1,cbar_location='right',cbar_mode='each',cbar_size='3%',cbar_pad=0.3, label_mode='keep')
         ax = global_map(axs[0])
-        bs = ax.scatter(x=coord_x,y=coord_y,s=15,c=quan95[1,:],transform=crt.crs.PlateCarree(),cmap=cmap, vmin=vrange1[0], vmax=vrange1[1]); 
-        cbar = ax.cax.colorbar(bs); cbar.set_label('Still water level [m]',fontsize=14)
-        ax.set_title(f"95th percentile of still water levels \n based on {settings[f'yearmin1']}-{settings[f'yearmax1']} dataset",fontsize=16)
+        bs = ax.scatter(x=coord_x,y=coord_y,s=8,c=quan95[1,:],transform=crt.crs.PlateCarree(),cmap=cmap, vmin=vrange1[0], vmax=vrange1[1]); 
+        cbar = ax.cax.colorbar(bs); cbar.set_label('Still water level [m]',fontsize=13)
+        ax.set_title(f"95th percentile of still water levels \n based on {settings[f'yearmin1']}-{settings[f'yearmax1']} dataset",fontsize=15)
         ax = global_map(axs[1])
-        bs = ax.scatter(x=coord_x,y=coord_y,s=15,c=quan95[1,:]-quan95[0,:],transform=crt.crs.PlateCarree(),cmap=cmap4, vmin=vrange2[0], vmax=vrange2[1]); 
-        cbar = ax.cax.colorbar(bs); cbar.set_label('Still water level difference [m]',fontsize=14)
-        ax.set_title(f"Difference in 95th percentile values \n between {settings['yearmin1']}-{settings['yearmax1']} vs. {settings['yearmin0']}-{settings['yearmax0']} dataset",fontsize=16)
+        bs = ax.scatter(x=coord_x,y=coord_y,s=8,c=quan95[1,:]-quan95[0,:],transform=crt.crs.PlateCarree(),cmap=cmap4, vmin=vrange2[0], vmax=vrange2[1]); 
+        cbar = ax.cax.colorbar(bs); cbar.set_label('Still water level difference [m]',fontsize=13)
+        ax.set_title(f"Difference in 95th percentile values \n between 1950-2024 vs. {settings['yearmin0']}-{settings['yearmax0']} dataset",fontsize=15)
 
-        figname = 'EVA_map_95percentile_comparison_between_periods_v5.png'  
-        fig.savefig(f'{dir_eva}/{figname}')
+        figname = 'EVA_map_95percentile_comparison_between_periods_v5.jpg'  
+        fig.savefig(f'{dir_eva}/{figname}',format='jpg')
 
         # plots of extreme return periods and difference between periods
         for rp in [1,10,100]:
@@ -150,23 +155,23 @@ if __name__ == "__main__":
 
             ax = global_map(axs[0])
             bs = ax.scatter(x=coord_x,y=coord_y,s=15,c=rp_all[1,:],transform=crt.crs.PlateCarree(),cmap=cmap3, vmin=vrange1[0], vmax=vrange1[1]); 
-            cbar = ax.cax.colorbar(bs); cbar.set_label('Still water level [m]',fontsize=14)
-            ax.set_title(f"Extreme values with {rp}-year return period \n based on {settings[f'yearmin1']}-{settings[f'yearmax1']}",fontsize=14)        
+            cbar = ax.cax.colorbar(bs); cbar.set_label('Still water level [m]',fontsize=13)
+            ax.set_title(f"Extreme values with {rp}-year return period \n based on {settings[f'yearmin1']}-{settings[f'yearmax1']}",fontsize=15)        
 
             ax = global_map(axs[1])
             bs = ax.scatter(x=coord_x,y=coord_y,s=15,c=rp_all[1,:]-rp_all[0,:],transform=crt.crs.PlateCarree(),cmap=cmap4, vmin=vrange2[0], vmax=vrange2[1]); 
-            cbar = ax.cax.colorbar(bs); cbar.set_label('Still water level difference [m]',fontsize=14)
-            ax.set_title(f"Difference in extreme values with {rp}-year return period \n between {settings['yearmin1']}-{settings['yearmax1']} vs. {settings['yearmin0']}-{settings['yearmax0']} dataset",fontsize=14)        
-            figname = f'EVA_map_RP{rp}_comparison_between_periods_v5.png' 
-            fig.savefig(f'{dir_eva}/{figname}')
+            cbar = ax.cax.colorbar(bs); cbar.set_label('Still water level difference [m]',fontsize=13)
+            ax.set_title(f"Difference in extreme values with {rp}-year return period \n between 1950-2024 vs. {settings['yearmin0']}-{settings['yearmax0']} dataset",fontsize=15)        
+            figname = f'EVA_map_RP{rp}_comparison_between_periods_v5.jpg' 
+            fig.savefig(f'{dir_eva}/{figname}',format='jpg')
 
         # combined plot with 95th perc and 100 year return value
         for rp in [100]:
-            rp_all = np.vstack((np.array(np.array(ds_gtsm_eva0[f'{str(rp)}_bf']),np.array(ds_gtsm_eva1[f'{str(rp)}_bf'])))
+            rp_all = np.vstack((np.array(ds_gtsm_eva0[f'{str(rp)}_bf']),np.array(ds_gtsm_eva1[f'{str(rp)}_bf'])))
             
             mpl.rcParams.update({'font.size': 18})
             csize = 15
-            fig = plt.figure(figsize=(20,15))
+            fig = plt.figure(figsize=(17,12))
             axes_class = (GeoAxes, dict(projection=crt.crs.Robinson()))
             axs = AxesGrid(fig, 111, axes_class=axes_class, nrows_ncols=(2, 2), share_all=True, axes_pad=1.6,cbar_location='bottom',cbar_mode='each',cbar_size='8%',cbar_pad=0.4, label_mode='keep')
     
@@ -186,17 +191,29 @@ if __name__ == "__main__":
             bs =ax.scatter(x=coord_x,y=coord_y,s=csize,c=quan95[1,:]-quan95[0,:],cmap=cmap4,transform=crt.crs.PlateCarree(),vmin=-0.03, vmax=0.03);
 
             cbar = ax.cax.colorbar(bs); cbar.set_label('Still water level difference [m]',fontsize=20)
-            ax.set_title('Difference in 95th percentile values \n GTSM-ERA5-E (1950-2022) vs. GTSM-ERA5 (1979-2018)',fontsize=22);
+            ax.set_title('Difference in 95th percentile values \n GTSM-ERA5-E (1950-2024) vs. GTSM-ERA5 (1979-2018)',fontsize=20);
 
             ax = global_map(axs[3])
             bs =ax.scatter(x=coord_x,y=coord_y,s=csize,c=rp_all[1,:]-rp_all[0,:],cmap=cmap4,transform=crt.crs.PlateCarree(),vmin=-0.5, vmax=0.5); #
             cbar = ax.cax.colorbar(bs); cbar.set_label('Still water level difference [m]',fontsize=20); 
-            ax.set_title('Difference in 100-year return values \n GTSM-ERA5-E (1950-2022) vs. GTSM-ERA5 (1979-2018)',fontsize=22);
+            ax.set_title('Difference in 100-year return values \n GTSM-ERA5-E (1950-2024) vs. GTSM-ERA5 (1979-2018)',fontsize=20);
             plt.tight_layout()   
+            figname = 'Map_comparison_model_GTSM-ERA5-E_vs_GTSM-ERA5.jpg'  
+            fig.savefig(f'{dir_eva}/{figname}',format='jpg')
 
-            figname = 'Map_comparison_model_GTSM-ERA5-E_vs_GTSM-ERA5.png'  
-            fig.savefig(f'{dir_eva}/{figname}')
-
+        # Plot difference between RP100 and HAT
+        ds_hat = xr.open_dataset(os.path.join(dir_postproc,'historical_tide_actual-value_1985-2014_HAT_v1.nc'))
+        
+        mpl.rcParams.update({'font.size': 14})
+        fig = plt.figure(figsize=(10,5))
+        axes_class = (GeoAxes, dict(projection=crt.crs.Robinson()))
+        axs = AxesGrid(fig, 111, axes_class=axes_class, nrows_ncols=(1, 1), share_all=True, axes_pad=1,cbar_location='right',cbar_mode='each',cbar_size='3%',cbar_pad=0.3, label_mode='keep')
+        ax = global_map(axs[0])
+        bs = ax.scatter(x=coord_x,y=coord_y,s=15,c=ds_gtsm_eva1[f'100_bf'] - ds_hat['HAT'].values[0],transform=crt.crs.PlateCarree(),cmap=cmap, vmin=0,vmax=1); 
+        cbar = ax.cax.colorbar(bs); cbar.set_label('Water level difference [m]',fontsize=15)
+        ax.set_title(f"Difference between RP100 of total water levels \n and Highest Astronomical Tide based on {settings[f'yearmin1']}-{settings[f'yearmax1']} dataset",fontsize=16)
+        figname = 'EVA_map_RP100_vs_HAT_GTSM-ERA5-E_v2.jpg'  
+        fig.savefig(f'{dir_eva}/{figname}',format='jpg')
 
         # plot of difference in confidence interval width
         for rp in [100]:
@@ -207,11 +224,11 @@ if __name__ == "__main__":
 
             # count points where the width is reduced and the average reduction
             print(f'Confidence interval width reduced by {(1-np.mean(rp_intwidth_all[1,:]/rp_intwidth_all[0,:]))*100:.1f}%')
-            print(f'Confidence interval width is reduced at {sum(1 for i in tmp if i < 0)/len(tmp)*100:.1f}% of points')
+            #print(f'Confidence interval width is reduced at {sum(1 for i in tmp if i < 0)/len(tmp)*100:.1f}% of points')
             
             mpl.rcParams.update({'font.size': 18})
             csize = 15
-            fig = plt.figure(figsize=(20,15))
+            fig = plt.figure(figsize=(19,9))
             axes_class = (GeoAxes, dict(projection=crt.crs.Robinson()))
             axs = AxesGrid(fig, 111, axes_class=axes_class, nrows_ncols=(1, 2), share_all=True, axes_pad=1.6,cbar_location='bottom',cbar_mode='each',cbar_size='8%',cbar_pad=0.4, label_mode='keep')
     
@@ -224,12 +241,12 @@ if __name__ == "__main__":
             ax = global_map(axs[1])
             bs = ax.scatter(x=coord_x,y=coord_y,s=csize,c=rp_intwidth_all[1,:]-rp_intwidth_all[0,:],transform=crt.crs.PlateCarree(),cmap=cmap4, vmin=-0.5, vmax=0.5); 
             cbar = ax.cax.colorbar(bs); cbar.set_label('Difference [m]',fontsize=20)
-            ax.set_title(f'Difference in confidence interval width \n {rp}-year return period water levels \n GTSM-ERA5-E (1950-2022) vs. GTSM-ERA5 (1979-2018)',fontsize=22);
+            ax.set_title(f'Difference in confidence interval width \n {rp}-year return period water levels \n GTSM-ERA5-E (1950-2024) vs. GTSM-ERA5 (1979-2018)',fontsize=22);
 
             plt.tight_layout()   
 
-            figname = 'Map_comparison_model_GTSM-ERA5-E_vs_GTSM-ERA5_confidence_intervals.png'  
-            fig.savefig(f'{dir_eva}/{figname}')
+            figname = 'Map_comparison_model_GTSM-ERA5-E_vs_GTSM-ERA5_confidence_intervals.jpg'  
+            fig.savefig(f'{dir_eva}/{figname}',format='jpg')
 
 
     if make_local_plots:
@@ -245,7 +262,7 @@ if __name__ == "__main__":
                   [-22.923, -43.154], #Rio de J
                   [60.142, -1.145], #Lerwick, UK
                   [-6.163, 39.161]] # Zanzibar, Tanzania
-        citynames = ['IJmuiden, NL','Mombasa, Kenya','Buenos Aires','Houston, USA','New York, USA','Aburatsu, Japan','Boston, USA','Rio de Janeiro, Brazil','Lerwick, UK','Zanzibar, Tanzania']
+        citynames = ['IJmuiden, NL','Mombasa, Kenya','Buenos Aires, Argentina','Houston, USA','New York, USA','Aburatsu, Japan','Boston, USA','Rio de Janeiro, Brazil','Lerwick, UK','Zanzibar, Tanzania']
     
         dir_wlts = '/gpfs/work1/0/einf3499/06_model_runs/03_postprocessing/timeseries-GTSM-ERA5-hourly/waterlevel/'
         dir_wlts2 = '/gpfs/work1/0/einf3499/06_model_runs/03_postprocessing/timeseries-GTSM-ERA5-hourly-1979-2018/waterlevel/'
@@ -264,7 +281,7 @@ if __name__ == "__main__":
         stations = ds.stations.values
     
         #load long timeseries
-#        for year in range(1950,2023):
+#        for year in range(1950,2025):
 #            print(f'loading {year}')
 #            for mnth in range(1,13):
 #                print(f'loading {year}, month {mnth}')
@@ -272,7 +289,7 @@ if __name__ == "__main__":
 #                    file_nc = os.path.join(dir_wlts,f'reanalysis_waterlevel_hourly_{year}_{mnth:02d}_v1.nc')
 #                    ds = xr.open_dataset(file_nc,chunks={'stations': 1000}); ds.close()
 #                    if "station_x_coordinate" in list(ds.data_vars):
-#                    ds = ds.set_coords(("station_x_coordinate", "station_y_coordinate"))                 
+#                        ds = ds.set_coords(("station_x_coordinate", "station_y_coordinate"))               
 #                else:
 #                    file_nc = os.path.join(dir_wlts2,f'reanalysis_waterlevel_hourly_{year}_{mnth:02d}_v1.nc')
 #                    ds = xr.open_dataset(file_nc,chunks={'stations': 1000}); ds.close()
@@ -282,11 +299,11 @@ if __name__ == "__main__":
 #                    ds_gtsm = ds
 #                else:
 #                    ds_gtsm = xr.concat([ds_gtsm,ds],dim="time")
-#        # save timeseries selection 
-#        ds_gtsm.to_netcdf("/gpfs/work1/0/einf3499/06_model_runs/03_postprocessing/EVA-GTSM-ERA5/period_1950_2022_1hr_selected_stations_CityLocs.nc");
+        # save timeseries selection 
+#        ds_gtsm.to_netcdf("/gpfs/work1/0/einf3499/06_model_runs/03_postprocessing/EVA-GTSM-ERA5/period_1950_2024_1hr_selected_stations_CityLocs.nc");
 
         # open timeseries selection
-        ds_gtsm = xr.open_dataset("/gpfs/work1/0/einf3499/06_model_runs/03_postprocessing/EVA-GTSM-ERA5/period_1950_2022_1hr_selected_stations_CityLocs.nc");
+        ds_gtsm = xr.open_dataset("/gpfs/work1/0/einf3499/06_model_runs/03_postprocessing/EVA-GTSM-ERA5/period_1950_2024_1hr_selected_stations_CityLocs.nc");
         
         ds_gtsm['sea_level'] = ds_gtsm['waterlevel']
         ds_gtsm = ds_gtsm.drop(['waterlevel'])
@@ -301,7 +318,7 @@ if __name__ == "__main__":
         ds_gtsm_eva0 = ds_gtsm_eva0.reset_index()
         ds_gtsm_eva1 = ds_gtsm_eva1.reset_index()
 
-        overview_location_plot = 0
+        overview_location_plot = 1
         comparison_location_plot = 1
     
     if overview_location_plot:
@@ -345,16 +362,17 @@ if __name__ == "__main__":
         #    plot location on the map
             ax0 = global_map(ax0)
 
+            rp_all = np.vstack((np.array(ds_gtsm_eva0[f'100_bf']),np.array(ds_gtsm_eva1[f'100_bf'])))
             bs0 = ax0.scatter(x=coord_x,y=coord_y,s=15,c=rp_all[1,:]-rp_all[0,:],transform=crt.crs.PlateCarree(),cmap=cmap, vmin=vrange1[0], vmax=vrange1[1]); 
 
             bs = ax0.scatter(x=coord_x[st_id],y=coord_y[st_id],marker ='o',s=200,transform=crt.crs.PlateCarree(),facecolors='none',edgecolors='red',linewidth=3); 
             ax0.title.set_text(f"Location {int(stations[st_id])}")
             
         #   plot return values on a log plot per dataset
-            model.plot_return_values(return_period=[1, 2, 5, 10, 25, 50, 100,500,1000],alpha=0.95,ax=ax2)
-            model_short.plot_return_values(return_period=[1, 2, 5, 10, 25, 50, 100,500,1000],alpha=0.95,ax=ax3)
+            model.plot_return_values(return_period=[1, 2, 5, 10, 25, 50, 100],alpha=0.95,ax=ax2)
+            model_short.plot_return_values(return_period=[1, 2, 5, 10, 25, 50, 100],alpha=0.95,ax=ax3)
             ax2.set_ylabel('Still water level [m]'); ax3.set_ylabel('Still water level [m]')
-            ax2.title.set_text(f"Return values based on 1950-2022 dataset"); ax3.title.set_text(f"Return values based on 1979-2018 dataset"); 
+            ax2.title.set_text(f"Return values based on 1950-2024 dataset"); ax3.title.set_text(f"Return values based on 1979-2018 dataset"); 
 
             # plot EVA confidence intervals together for comparison
             ax1.semilogx()
@@ -366,7 +384,7 @@ if __name__ == "__main__":
                 ax1.plot(model_short_summary.index.values,model_short_summary.loc[:, col].values,color="#ff6e51",lw=1,ls="--",zorder=15)
             ax1.fill_between(model_summary.index.values,model_summary.loc[:, "lower ci"].values,model_summary.loc[:, "upper ci"].values, facecolor="#5199FF",edgecolor="None",alpha=0.25,zorder=9)
             ax1.fill_between(model_short_summary.index.values,model_short_summary.loc[:, "lower ci"].values,model_short_summary.loc[:, "upper ci"].values, facecolor="#ff6e51",edgecolor="None",alpha=0.25,zorder=10)
-            ax1.plot(model_summary.index.values,model_summary.loc[:, "return value"].values,color="#285fad",lw=2,ls="-",zorder=24,label='Based on 1950-2022 dataset')
+            ax1.plot(model_summary.index.values,model_summary.loc[:, "return value"].values,color="#285fad",lw=2,ls="-",zorder=24,label='Based on 1950-2024 dataset')
             ax1.plot(model_short_summary.index.values,model_short_summary.loc[:, "return value"].values,color="#b8391f",lw=2,ls="-",zorder=25,label='Based on 1979-2018 dataset')
             ax1.set_xlabel("Return period")
             ax1.set_ylabel("Still water level [m]")
@@ -387,14 +405,19 @@ if __name__ == "__main__":
             ax5.set_ylabel('Still water level [m]')
             ax5.grid(); ax5.title.set_text('Timeseries around peak value')
             
-            figname = f'EVA_station_{str(int(stations[st_id])).zfill(5)}_RV_1950-2022_vs_1979-2018_{cityname}.png' 
+            figname = f'EVA_station_{str(int(stations[st_id])).zfill(5)}_RV_1950-2024_vs_1979-2018_{cityname}.png' 
             fig.savefig(f'{dir_eva}/timeseries_plots/{figname}')
             plt.clf()
 
     if comparison_location_plot:
         # make comparison plot
 
-        fig = plt.figure(figsize=(20,17))
+        var_quant = 0.99
+
+        plt.rcParams['figure.dpi'] = 300
+        plt.rcParams['savefig.dpi'] = 300
+
+        fig = plt.figure(figsize=(12,11))
         axs=[]
         axs.append(plt.subplot2grid((3, 3), (0, 0), colspan=1,rowspan=1))
         axs.append(plt.subplot2grid((3, 3), (0, 1), colspan=1, rowspan=1,sharex=axs[0]))
@@ -412,7 +435,7 @@ if __name__ == "__main__":
         rp_diff = np.array(ds_gtsm_eva1['100_bf']) - np.array(ds_gtsm_eva0['100_bf'])
 
         axs[4] = global_map(axs[4])
-        bs0 = axs[4].scatter(x=coord_x,y=coord_y,s=15,c=rp_diff,transform=crt.crs.PlateCarree(),cmap=cmap, vmin=vrange1[0], vmax=vrange1[1]); 
+        bs0 = axs[4].scatter(x=coord_x,y=coord_y,s=12,c=rp_diff,transform=crt.crs.PlateCarree(),cmap=cmap, vmin=vrange1[0], vmax=vrange1[1]); 
         axs[4].title.set_text(f"Difference in water level \n 100-year return values")
         cbar = plt.colorbar(bs0,ax=axs[4],orientation='horizontal',aspect=30); cbar.set_label('Still water level difference [m]')
 
@@ -430,38 +453,52 @@ if __name__ == "__main__":
                 continue
 
             # plot location on the map
-            bs = axs[4].scatter(x=coord_x[st_id],y=coord_y[st_id],marker ='o',s=150,transform=crt.crs.PlateCarree(),facecolors='none',edgecolors='red',linewidth=3); 
+            bs = axs[4].scatter(x=coord_x[st_id],y=coord_y[st_id],marker ='o',s=100,transform=crt.crs.PlateCarree(),facecolors='none',edgecolors='red',linewidth=1); 
             
             # prepare EVA outputs
             var = ds_gtsm.sea_level_detrended.sel(stations=stations[st_id]).to_dataframe().loc[:, 'sea_level_detrended'].dropna()
-            varth = var.quantile(0.99); 
+            varth = var.quantile(var_quant); 
             model = EVA(var); del var
             model.get_extremes("POT", threshold=varth, r="72H");  del varth
             model.fit_model(distribution='genpareto',model='MLE')
+            
+            model_observed_rv = get_return_periods(ts=model.data,extremes=model.extremes, extremes_method=model.extremes_method,extremes_type=model.extremes_type, block_size=model.extremes_kwargs.get("block_size", None))
+            model_observed_rv = model_observed_rv.drop(model_observed_rv[model_observed_rv['return period'] < 1].index)
 
             var = ds_gtsm.sea_level_detrended.sel(stations=stations[st_id],time=slice("1979-01-01", "2019-01-01")).to_dataframe().loc[:, 'sea_level_detrended'].dropna()
-            varth = var.quantile(0.99)
+            varth = var.quantile(var_quant)
             model_short = EVA(var); del var
             model_short.get_extremes("POT", threshold=varth, r="72H"); del varth
             model_short.fit_model(distribution='genpareto',model='MLE')
+            model_short_observed_rv = get_return_periods(ts=model_short.data,extremes=model_short.extremes, extremes_method=model_short.extremes_method,extremes_type=model_short.extremes_type, block_size=model_short.extremes_kwargs.get("block_size", None))
+            model_short_observed_rv = model_short_observed_rv.drop(model_short_observed_rv[model_short_observed_rv['return period'] < 1].index)
 
             # get pandas with EVA results for plotting
-            model_summary = model.get_summary(return_period=[1,2,5,10,50,100,500,1000],alpha=0.95)
-            model_short_summary = model_short.get_summary(return_period=[1,2,5,10,50,100,500,1000],alpha=0.95)
+            model_summary = model.get_summary(return_period=[1,2,5,8,9,10,20,30,40,50,70,100],alpha=0.95)
+            model_short_summary = model_short.get_summary(return_period=[1,2,5,8,9,10,20,30,40,50,70,100],alpha=0.95)
 
             # plot EVA confidence intervals together for comparison
             ax.semilogx()
             ax.grid(True, which="both",color='darkgrey')
             ax.xaxis.set_major_formatter(plt.FuncFormatter(lambda x, _: f"{x:,.0f}"))
-            
+
+            # plot confidence intervals
             for col in ["lower ci", "upper ci"]:
                 ax.plot(model_summary.index.values,model_summary.loc[:, col].values,color="#5199FF",lw=1,ls="--",zorder=14)
                 ax.plot(model_short_summary.index.values,model_short_summary.loc[:, col].values,color="#ff6e51",lw=1,ls="--",zorder=15)
             ax.fill_between(model_summary.index.values,model_summary.loc[:, "lower ci"].values,model_summary.loc[:, "upper ci"].values, facecolor="#5199FF",edgecolor="None",alpha=0.25,zorder=9)
             ax.fill_between(model_short_summary.index.values,model_short_summary.loc[:, "lower ci"].values,model_short_summary.loc[:, "upper ci"].values, facecolor="#ff6e51",edgecolor="None",alpha=0.25,zorder=10)
-            ax.plot(model_summary.index.values,model_summary.loc[:, "return value"].values,color="#285fad",lw=2,ls="-",zorder=24,label='GTSM-ERA5-E (1950-2022)')
+
+            # Plot observed values
+            ax.scatter(model_observed_rv.loc[:, "return period"].values, model_observed_rv.loc[:, model_observed_rv.columns[0]].values,marker="o",s=15,lw=1,facecolor="#5199FF",edgecolor="None",zorder=20)
+            ax.scatter(model_short_observed_rv.loc[:, "return period"].values, model_short_observed_rv.loc[:, model_short_observed_rv.columns[0]].values,marker="o",s=15,lw=1,facecolor="#ff6e51",edgecolor="None",zorder=20)
+            
+            # plot fits
+            ax.plot(model_summary.index.values,model_summary.loc[:, "return value"].values,color="#285fad",lw=2,ls="-",zorder=24,label='GTSM-ERA5-E (1950-2024)')
             ax.plot(model_short_summary.index.values,model_short_summary.loc[:, "return value"].values,color="#b8391f",lw=2,ls="-",zorder=25,label='GTSM-ERA5 (1979-2018)')
 
+            ax.set_xlim([1,100])
+            
             if cc>4:
                 ax.set_xlabel("Return period")
             if cc in [0,3,5]:
@@ -471,8 +508,8 @@ if __name__ == "__main__":
             ax.title.set_text(cname)
             plt.tight_layout()
             
-            figname = f'EVA_station_CITIES_RV_1950-2022_vs_1979-2018.png' 
-            fig.savefig(f'{dir_eva}/{figname}')
+            figname = f'EVA_station_CITIES_RV_1950-2024_vs_1979-2018_thresh_{str(var_quant).replace(".","_")}.jpg' 
+            fig.savefig(f'{dir_eva}/{figname}',format='jpg',dpi=300)
 
 
 

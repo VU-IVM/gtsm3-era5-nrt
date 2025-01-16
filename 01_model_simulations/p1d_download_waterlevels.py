@@ -12,7 +12,7 @@ def download_waterlevels(yr, mnth):
     yr=int(yr)
     mnth=int(mnth)
 
-    outdir = os.path.join(path_dict['postproc'],'timeseries-GTSM-ERA5-hourly-1979-2018')
+    outdir = os.path.join(path_dict['postproc'],'timeseries-GTSM-ERA5-10min-1979-2018')
     outdir_waterlevel = os.path.join(outdir,'waterlevel')
     outdir_surge = os.path.join(outdir,'surge')
     os.makedirs(outdir_waterlevel,exist_ok=True)
@@ -26,8 +26,8 @@ def download_waterlevels(yr, mnth):
       
     experiment = 'reanalysis' 
       
-    path_ncfile_wl = os.path.join(outdir, f'{experiment}_waterlevel_hourly_{yr}_{mnth:02}_v1.nc')
-    path_ncfile_surge = os.path.join(outdir, f'{experiment}_surge_hourly_{yr}_{mnth:02}_v1.nc')
+    path_ncfile_wl = os.path.join(outdir_waterlevel, f'{experiment}_waterlevel_10min_{yr}_{mnth:02}_v1.nc')
+    path_ncfile_surge = os.path.join(outdir_surge, f'{experiment}_surge_10min_{yr}_{mnth:02}_v1.nc')
 
     # download water levels
     if os.path.isfile(path_ncfile_wl):
@@ -42,7 +42,7 @@ def download_waterlevels(yr, mnth):
                 'experiment': experiment,
                 'year': yr,
                 'month':[f'{mnth:02}'],
-                'temporal_aggregation': 'hourly',
+                'temporal_aggregation': '10_min',
             }, path_zipfile)
         # unzip and remove zipfile
         with zipfile.ZipFile(path_zipfile,"r") as zip_ref:
@@ -63,7 +63,7 @@ def download_waterlevels(yr, mnth):
                 'experiment': experiment,
                 'year': yr,
                 'month':[f'{mnth:02}'],
-                'temporal_aggregation': 'hourly',
+                'temporal_aggregation': '10_min',
             }, path_zipfile)
         # unzip and remove zipfile
         with zipfile.ZipFile(path_zipfile,"r") as zip_ref:
