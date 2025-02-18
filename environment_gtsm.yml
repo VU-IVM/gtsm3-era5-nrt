@@ -1,0 +1,15 @@
+name: gtsm3-era5
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.11
+  - pandas
+  - xarray
+  - numpy
+  - matplotlib
+  - pyextremes
+  - dask
+  - cartopy
+  - netCDF4
+  - h5netcdf
