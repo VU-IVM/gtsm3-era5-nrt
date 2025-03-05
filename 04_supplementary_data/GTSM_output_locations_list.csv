@@ -1,4 +1,4 @@
-	lon	lat	station_name
+station_id	lon	lat	station_name
 0	24.089	34.827	id_coast_glob_eur_00001
 1	24.089	34.871	id_coast_glob_eur_00002
 2	26.902	35.369	id_coast_glob_eur_00003
