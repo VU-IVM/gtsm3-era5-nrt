@@ -1,4 +1,4 @@
-station_id lon lat station_name
+station_id	lon	lat	station_name
 0	24.089	34.827	id_coast_glob_eur_00001
 1	24.089	34.871	id_coast_glob_eur_00002
 2	26.902	35.369	id_coast_glob_eur_00003
@@ -40019,13 +40019,13 @@ station_id lon lat station_name
 40630	7.844	55.481	currents_horns_rev
 40631	7.581	55.598	currents_horns_rev_2
 40632	6.812	53.979	currents_innogy_nordsee_i
-40633	5.01	59.092	currents_karm�y
-40634	12.473	56.887	currents_l�staviken
+40633	5.01	59.092	currents_karm y
+40634	12.473	56.887	currents_l staviken
 40635	7.69	54.39	currents_meerwind_sd/ost
 40636	6.548	54.038	currents_meg_offshore_i
 40637	8.167	53.855	currents_nordergruende
-40638	6.929	55.063	currents_n�dlicher_grund
-40639	6.929	55.093	currents_n�dlicher_grund_teil_sandban
+40638	6.929	55.063	currents_n dlicher_grund
+40639	6.929	55.093	currents_n dlicher_grund_teil_sandban
 40640	7.69	54.448	currents_nordsee_ost
 40641	3.01	51.519	currents_norther
 40642	2.908	51.614	currents_northwind
@@ -40036,7 +40036,7 @@ station_id lon lat station_name
 40647	4.087	52.251	currents_q10_wp
 40648	4.263	52.661	currents_q4_wp
 40649	2.944	51.584	currents_rentel_area_a
-40650	8.225	56.682	currents_r�nland
+40650	8.225	56.682	currents_r nland
 40651	6.841	55.21	currents_sandbank_24
 40652	2.864	51.636	currents_seastar
 40653	12.114	56.588	currents_stora_middlegrund
