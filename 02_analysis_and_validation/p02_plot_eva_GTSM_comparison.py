@@ -43,7 +43,7 @@ def detrend(ds: xr.DataArray, plot = False):
 if __name__ == "__main__":   
     # EVA was performed for two periods that will be compared:
     settings = {'yearmin0': 1979,'yearmax0': 2018,'mode0':'1hr',
-                'yearmin1': 1950,'yearmax1': 2023,'mode1':'1hr'}
+                'yearmin1': 1950,'yearmax1': 2024,'mode1':'1hr'}
 
     rps =[1,10,50,100]    
     
@@ -55,7 +55,7 @@ if __name__ == "__main__":
     
     #specify directories where timeseries data is stored
     dir_eva0 = os.path.join(dir_postproc,'EVA-GTSM-ERA5',f'period_{settings["yearmin0"]}_{settings["yearmax0"]}_{settings["mode0"]}_v2')
-    dir_eva1 = os.path.join(dir_postproc,'EVA-GTSM-ERA5',f'period_{settings["yearmin1"]}_{settings["yearmax1"]}_{settings["mode1"]}_v3')
+    dir_eva1 = os.path.join(dir_postproc,'EVA-GTSM-ERA5',f'period_{settings["yearmin1"]}_{settings["yearmax1"]}_{settings["mode1"]}_v4')
     
     #locate .csv files
     filenames0 = 'ds_GTSM-ERA5_%s_%s_stations*eva.csv' % (str(settings['yearmin0']),str(settings['yearmax0']))
@@ -209,7 +209,7 @@ if __name__ == "__main__":
         axes_class = (GeoAxes, dict(projection=crt.crs.Robinson()))
         axs = AxesGrid(fig, 111, axes_class=axes_class, nrows_ncols=(1, 1), share_all=True, axes_pad=1,cbar_location='right',cbar_mode='each',cbar_size='3%',cbar_pad=0.3, label_mode='keep')
         ax = global_map(axs[0])
-        bs = ax.scatter(x=coord_x,y=coord_y,s=15,c=ds_gtsm_eva1[f'100_bf'] - ds_hat['HAT'].values[0],transform=crt.crs.PlateCarree(),cmap=cmap, vmin=0,vmax=1); 
+        bs = ax.scatter(x=coord_x,y=coord_y,s=15,c=ds_gtsm_eva1[f'100_bf'] - ds_hat['HAT'].values[0],transform=crt.crs.PlateCarree(),cmap=cmap3, vmin=0,vmax=1); 
         cbar = ax.cax.colorbar(bs); cbar.set_label('Water level difference [m]',fontsize=15)
         ax.set_title(f"Difference between RP100 of total water levels \n and Highest Astronomical Tide based on {settings[f'yearmin1']}-{settings[f'yearmax1']} dataset",fontsize=16)
         figname = 'EVA_map_RP100_vs_HAT_GTSM-ERA5-E_v2.jpg'  
@@ -318,7 +318,7 @@ if __name__ == "__main__":
         ds_gtsm_eva0 = ds_gtsm_eva0.reset_index()
         ds_gtsm_eva1 = ds_gtsm_eva1.reset_index()
 
-        overview_location_plot = 1
+        overview_location_plot = 0
         comparison_location_plot = 1
     
     if overview_location_plot:
@@ -463,7 +463,7 @@ if __name__ == "__main__":
             model.fit_model(distribution='genpareto',model='MLE')
             
             model_observed_rv = get_return_periods(ts=model.data,extremes=model.extremes, extremes_method=model.extremes_method,extremes_type=model.extremes_type, block_size=model.extremes_kwargs.get("block_size", None))
-            model_observed_rv = model_observed_rv.drop(model_observed_rv[model_observed_rv['return period'] < 1].index)
+            model_observed_rv = model_observed_rv.drop(model_observed_rv[model_observed_rv['return period'] < 0.5].index)
 
             var = ds_gtsm.sea_level_detrended.sel(stations=stations[st_id],time=slice("1979-01-01", "2019-01-01")).to_dataframe().loc[:, 'sea_level_detrended'].dropna()
             varth = var.quantile(var_quant)
@@ -471,11 +471,11 @@ if __name__ == "__main__":
             model_short.get_extremes("POT", threshold=varth, r="72H"); del varth
             model_short.fit_model(distribution='genpareto',model='MLE')
             model_short_observed_rv = get_return_periods(ts=model_short.data,extremes=model_short.extremes, extremes_method=model_short.extremes_method,extremes_type=model_short.extremes_type, block_size=model_short.extremes_kwargs.get("block_size", None))
-            model_short_observed_rv = model_short_observed_rv.drop(model_short_observed_rv[model_short_observed_rv['return period'] < 1].index)
+            model_short_observed_rv = model_short_observed_rv.drop(model_short_observed_rv[model_short_observed_rv['return period'] < 0.5].index)
 
             # get pandas with EVA results for plotting
-            model_summary = model.get_summary(return_period=[1,2,5,8,9,10,20,30,40,50,70,100],alpha=0.95)
-            model_short_summary = model_short.get_summary(return_period=[1,2,5,8,9,10,20,30,40,50,70,100],alpha=0.95)
+            model_summary = model.get_summary(return_period=[0.5,1,2,5,8,9,10,20,30,40,50,70,100],alpha=0.95)
+            model_short_summary = model_short.get_summary(return_period=[0.5,1,2,5,8,9,10,20,30,40,50,70,100],alpha=0.95)
 
             # plot EVA confidence intervals together for comparison
             ax.semilogx()
@@ -497,7 +497,13 @@ if __name__ == "__main__":
             ax.plot(model_summary.index.values,model_summary.loc[:, "return value"].values,color="#285fad",lw=2,ls="-",zorder=24,label='GTSM-ERA5-E (1950-2024)')
             ax.plot(model_short_summary.index.values,model_short_summary.loc[:, "return value"].values,color="#b8391f",lw=2,ls="-",zorder=25,label='GTSM-ERA5 (1979-2018)')
 
-            ax.set_xlim([1,100])
+            from math import floor, ceil
+            
+            ylim1 = floor(np.min(model_observed_rv.loc[:, model_observed_rv.columns[0]].values)*10)/10
+            ylim2 = ceil(np.max(model_observed_rv.loc[:, model_observed_rv.columns[0]].values)*10)/10
+            
+            ax.set_xlim([0.5,100])
+            ax.set_ylim([ylim1,ylim2])
             
             if cc>4:
                 ax.set_xlabel("Return period")

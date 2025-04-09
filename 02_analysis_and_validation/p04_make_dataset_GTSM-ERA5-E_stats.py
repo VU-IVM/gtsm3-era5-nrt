@@ -70,7 +70,6 @@ if __name__ == "__main__":
     ds.lon.attrs = {'units': 'degrees_east', 'standard_name': 'longitude', 'long_name': 'longitude'}
     ds.lat.attrs = {'units': 'degrees_north', 'standard_name': 'latitude', 'long_name': 'latitude'}
     ds.stations.attrs = {'units': '', 'long_name': 'station_id'}
-    ds.quantile.attrs = {'units': '', 'long_name': 'quantile'}
     ds.return_period.attrs = {'units': 'years', 'long_name': 'return_period'}
     ds.wl_quantiles.attrs = {'units': 'm', 'standard_name': 'sea_surface_height_above_mean_sea_level', 'long_name': 'still_water_level_statistics_quantiles', 'description': 'Still water level above mean sea level statistical value corresponding to a given quantile based on detrended GTSM-ERA5-E timeseries over 1950-2024. Timeseries were detrended to remove the sea level rise component by subtracting yearly means for each year of the data. The vertical reference of the data is Mean Sea Level. The underlying timeseries data originates from the GTSMv3.0 model runs forced with ERA5 reanalysis atmospheric data, the timeseries are available at DOI: 10.24381/cds.a6d42d60'}
     ds.eva_param_scale.attrs = {'units': '','long_name':'scale_parameter', 'description': 'Scale parameter of the extreme value analysis, POT-GPD method, MLE model'}
