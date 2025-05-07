@@ -50,7 +50,7 @@ def convert2FM(yr):
     
     data_xr = xr.open_mfdataset(file_nc_list,preprocess=preprocess,
                                 #parallel=True, #TODO: speeds up the process, but often "OSError: [Errno -51] NetCDF: Unknown file format" on WCF
-                                chunks={'time':1})
+                                chunks={'time':1}, coords='minimal')
     data_xr.close()
     print(f'{(dt.datetime.now()-dtstart).total_seconds():.2f} sec')
         
