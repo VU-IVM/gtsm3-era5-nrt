@@ -4,7 +4,7 @@
 #SBATCH -p rome
 
 # Make sure the jupyter command is available, either by loading the appropriate modules, sourcing your own virtual environment, etc.
-module load 2021
+module load 2022
 
 source /home/naleksandro/miniconda3/etc/profile.d/conda.sh
 conda activate /home/naleksandro/miniconda3/envs/gtsm3-era5-nrt-slm

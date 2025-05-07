@@ -5,11 +5,11 @@
 
 # load modules
 module purge
-module load 2021
+module load 2022
 
 # loop over months and years
-for yr in {2023..2023..1}; do
-  for mnth in {2..12..1}; do
+for yr in {1978..1978..1}; do
+  for mnth in {1..12..1}; do
   (
     echo $yr $mnth
     conda run -n gtsm3-era5-nrt-slm python p1a_download_ERA5.py $yr $mnth
