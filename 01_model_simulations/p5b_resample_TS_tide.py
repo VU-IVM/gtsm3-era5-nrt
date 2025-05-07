@@ -21,46 +21,19 @@ def resampleTS(year, mnth):
     
     # settings for which resampling to apply (by default all)
     save_10min = 1
-    save_hourly = 1
-    save_dailymax = 1
 
     dir_postproc = path_dict['postproc']
-    dir_out_wl = os.path.join(dir_postproc,'timeseries-GTSM-ERA5-hourly','waterlevel') 
-    dir_out_surge = os.path.join(dir_postproc,'timeseries-GTSM-ERA5-hourly','surge')
-    dir_out_wl_10min = os.path.join(dir_postproc,'timeseries-GTSM-ERA5-10min','waterlevel') 
-    dir_out_surge_10min = os.path.join(dir_postproc,'timeseries-GTSM-ERA5-10min','surge')
-    dir_out_wl_dailymax = os.path.join(dir_postproc,'timeseries-GTSM-ERA5-dailymax','waterlevel') 
-    dir_out_surge_dailymax = os.path.join(dir_postproc,'timeseries-GTSM-ERA5-dailymax','surge')
+    dir_out_tide_10min = os.path.join(dir_postproc,'timeseries-GTSM-ERA5-10min','tide') 
 
-    os.makedirs(dir_out_wl, exist_ok=True)
-    os.makedirs(dir_out_surge, exist_ok=True)
-    os.makedirs(dir_out_wl_10min, exist_ok=True)
-    os.makedirs(dir_out_surge_10min, exist_ok=True)
-    os.makedirs(dir_out_wl_dailymax, exist_ok=True)
-    os.makedirs(dir_out_surge_dailymax, exist_ok=True)
+    os.makedirs(dir_out_tide_10min, exist_ok=True)
 
-    ofile_wl_1hr = f'{dir_out_wl}/reanalysis_waterlevel_hourly_{year}_{mnth:02d}_v2.nc' #output file
-    ofile_surge_1hr = f'{dir_out_surge}/reanalysis_surge_hourly_{year}_{mnth:02d}_v2.nc' #output file
-    
-    ofile_wl_10min = f'{dir_out_wl_10min}/reanalysis_waterlevel_10min_{year}_{mnth:02d}_v2.nc' #output file
-    ofile_surge_10min = f'{dir_out_surge_10min}/reanalysis_surge_10min_{year}_{mnth:02d}_v2.nc' #output file
-    
-    ofile_wl_dailymax = f'{dir_out_wl_dailymax}/reanalysis_waterlevel_dailymax_{year}_{mnth:02d}_v2.nc' #output file
-    ofile_surge_dailymax = f'{dir_out_surge_dailymax}/reanalysis_surge_dailymax_{year}_{mnth:02d}_v2.nc' #output file
+    ofile_tide_10min = f'{dir_out_tide_10min}/historical_tide_{year}_{mnth:02d}_v2.nc' #output file
         
-    for name in {'waterlevel','surge'}:
-    
-        # skip if already processed
-        if (name=='waterlevel') & (os.path.isfile(ofile_wl_1hr)==True) & (os.path.isfile(ofile_wl_10min)==True) & (os.path.isfile(ofile_wl_dailymax)==True):
-            print (f'Year {year}, month {mnth}, {name} timeseries already processed.')
-            continue
-
-        if (name=='surge') & (os.path.isfile(ofile_surge_1hr)==True) & (os.path.isfile(ofile_surge_10min)==True) & (os.path.isfile(ofile_surge_dailymax)==True):
-            continue         
+    for name in {'tide'}:
 
         # get timeseries
         print(f'Loading timeseries of {name}...')
-        file_nc = os.path.join(dir_postproc,f'timeseries-GTSM-ERA5/{name}/reanalysis_{name}_10min_{year}_{mnth:02d}_v1.nc')
+        file_nc = os.path.join(dir_postproc,f'timeseries-GTSM-ERA5/{name}/historical_{name}_{year}_{mnth:02d}_v2.nc')
         ds = xr.open_dataset(file_nc,chunks={'stations': 1000}); 
         ds = ds.drop_vars(['station_name'])
         ds.load()
@@ -77,8 +50,6 @@ def resampleTS(year, mnth):
         ds.attrs['acknowledgment'] = 'The development of this dataset was financed with Deltares Strategic Research Program. Additional funding was received by Contract C3S2_422 Deltares'
         ds.attrs['date_modified'] = str(datetime.now(timezone.utc).replace(tzinfo=None)) + ' UTC'
         ds.attrs['summary'] = 'This dataset has been produced with the Global Tide and Surge Model (GTSM) version 3.0. GTSM was forced with wind speed and pressure fields from ERA5 climate reanalysis.'
-        if name=='waterlevel':
-            ds.attrs['id'] = 'GTSMv3_totalwaterlevels'
         
         ds['time'] = ds.time.assign_attrs({'axis': 'T', 'long_name': 'time', 'short_name': 'time'})
         ds['station_x_coordinate'].attrs['crs'] = 'EPSG:4326'
@@ -93,16 +64,14 @@ def resampleTS(year, mnth):
         # save 10-minute timeseries
         print(ds)
         if save_10min:
-            if (name=='waterlevel') & (os.path.isfile(ofile_wl_10min)==False):
-                ds.to_netcdf(ofile_wl_10min, encoding=encoding)
-            elif (name=='surge') & (os.path.isfile(ofile_surge_10min)==False):
-                ds.to_netcdf(ofile_surge_10min, encoding=encoding)
+            if (name=='tide') & (os.path.isfile(ofile_tide_10min)==False):
+                ds.to_netcdf(ofile_tide_10min, encoding=encoding)
             else:
                 print (f'Year {year}, month {mnth}, {name}, 10min timeseries already processed,skipping...')
         
         # resample dataset to hourly values
-        if save_hourly:    
-            
+        if save_hourly: 
+           
             # resample to hourly
             ds_offset = ds.copy()
             ds_offset["time"] = ds_offset["time"] + pd.Timedelta(minutes=30)
