@@ -25,8 +25,8 @@ from pyextremes.plotting import plot_return_values
 from pyextremes.extremes import get_return_periods
 
 # choose which plots to make
-make_global_plots = 0
-make_local_plots = 1
+make_global_plots = 1
+make_local_plots = 0
 
 # function for detrending timeseries
 def detrend(ds: xr.DataArray, plot = False):
@@ -91,27 +91,22 @@ if __name__ == "__main__":
         coord_y = np.append(coord_y, ds['station_y_coordinate'].values)
         stations = np.append(stations, ds['stations'].values)
 
-    # read quantiles
-    file_list_nc = [str(file_list0[ii]).replace('_eva.csv','_stats.nc') for ii in range(0,len(file_list0))]
-    ds = xr.open_dataset(file_list_nc[0]); ds.close()
-    quan90_0 = ds['sea_level_detrended'].values[5,:] # 5th percentile is 90% in this dataset, check if correct
-    quan95_0 = ds['sea_level_detrended'].values[6,:]
-    for ii in range(1,len(file_list_nc)):
-        ds = xr.open_dataset(file_list_nc[ii]); ds.close()
-        quan90_0 = np.append(quan90_0,ds['sea_level_detrended'].values[5,:])
-        quan95_0 = np.append(quan95_0,ds['sea_level_detrended'].values[6,:])
-    del ds, file_list_nc
+    # read  waterlevel quantiles
+    file_list_nc = glob.glob(os.path.join(dir_eva,'surge_stats','GTSM_ERA5_wl_quantiles_1950_1979_stations*.nc'))
+    ds_wl_q_ext = xr.open_mfdataset(file_list_nc); 
+    del file_list_nc
 
-    file_list_nc = [str(file_list1[ii]).replace('_eva.csv','_stats.nc') for ii in range(0,len(file_list1))]
-    ds = xr.open_dataset(file_list_nc[0]); ds.close()
-    quan90_1 = ds['sea_level_detrended'].values[5,:]
-    quan95_1 = ds['sea_level_detrended'].values[6,:]
-    for ii in range(1,len(file_list_nc)):
-        ds = xr.open_dataset(file_list_nc[ii]); ds.close()
-        quan90_1 = np.append(quan90_1,ds['sea_level_detrended'].values[5,:])
-        quan95_1 = np.append(quan95_1,ds['sea_level_detrended'].values[6,:])
-
-    del ds, file_list_nc    
+    file_list_nc = glob.glob(os.path.join(dir_eva,'surge_stats','GTSM_ERA5_wl_quantiles_1990_2019_stations*.nc'))
+    ds_wl_q_ori = xr.open_mfdataset(file_list_nc); 
+    del file_list_nc
+   
+    # read surge quantiles 
+    file_list_nc = glob.glob(os.path.join(dir_eva,'surge_stats','GTSM_ERA5_quantiles_1950_1979_stations*.nc'))
+    ds_sur_q_ext = xr.open_mfdataset(file_list_nc)
+    del file_list_nc
+    file_list_nc = glob.glob(os.path.join(dir_eva,'surge_stats','GTSM_ERA5_quantiles_1990_2019_stations*.nc'))
+    ds_sur_q_ori = xr.open_mfdataset(file_list_nc)
+    del file_list_nc
 
     # PLOTTING
     print('Plotting... ')
@@ -126,94 +121,122 @@ if __name__ == "__main__":
         plt.rcParams['savefig.dpi'] = 300
         
         # # Plotting percentiles - absolute and difference between periods
-        quan95 = np.vstack((quan95_0,quan95_1))
-        quan90 = np.vstack((quan90_0,quan90_1))
         vrange1=[0,3]; vrange2=[-0.03,0.03]; 
           
-        fig = plt.figure(figsize=(12,8))
-        axes_class = (GeoAxes, dict(projection=crt.crs.Robinson()))
-        axs = AxesGrid(fig, 111, axes_class=axes_class, nrows_ncols=(2, 1), share_all=True, axes_pad=1,cbar_location='right',cbar_mode='each',cbar_size='3%',cbar_pad=0.3, label_mode='keep')
-        ax = global_map(axs[0])
-        bs = ax.scatter(x=coord_x,y=coord_y,s=8,c=quan95[1,:],transform=crt.crs.PlateCarree(),cmap=cmap, vmin=vrange1[0], vmax=vrange1[1]); 
-        cbar = ax.cax.colorbar(bs); cbar.set_label('Still water level [m]',fontsize=13)
-        ax.set_title(f"95th percentile of still water levels \n based on {settings[f'yearmin1']}-{settings[f'yearmax1']} dataset",fontsize=15)
-        ax = global_map(axs[1])
-        bs = ax.scatter(x=coord_x,y=coord_y,s=8,c=quan95[1,:]-quan95[0,:],transform=crt.crs.PlateCarree(),cmap=cmap4, vmin=vrange2[0], vmax=vrange2[1]); 
-        cbar = ax.cax.colorbar(bs); cbar.set_label('Still water level difference [m]',fontsize=13)
-        ax.set_title(f"Difference in 95th percentile values \n between 1950-2024 vs. {settings['yearmin0']}-{settings['yearmax0']} dataset",fontsize=15)
+        # fig = plt.figure(figsize=(12,8))
+        # axes_class = (GeoAxes, dict(projection=crt.crs.Robinson()))
+        # axs = AxesGrid(fig, 111, axes_class=axes_class, nrows_ncols=(2, 1), share_all=True, axes_pad=1,cbar_location='right',cbar_mode='each',cbar_size='3%',cbar_pad=0.3, label_mode='keep')
+        # ax = global_map(axs[0])
+        # bs = ax.scatter(x=coord_x,y=coord_y,s=8,c=quan95[1,:],transform=crt.crs.PlateCarree(),cmap=cmap, vmin=vrange1[0], vmax=vrange1[1]); 
+        # cbar = ax.cax.colorbar(bs); cbar.set_label('Still water level [m]',fontsize=13)
+        # ax.set_title(f"95th percentile of still water levels \n based on {settings[f'yearmin1']}-{settings[f'yearmax1']} dataset",fontsize=15)
+        # ax = global_map(axs[1])
+        # bs = ax.scatter(x=coord_x,y=coord_y,s=8,c=quan95[1,:]-quan95[0,:],transform=crt.crs.PlateCarree(),cmap=cmap4, vmin=vrange2[0], vmax=vrange2[1]); 
+        # cbar = ax.cax.colorbar(bs); cbar.set_label('Still water level difference [m]',fontsize=13)
+        # ax.set_title(f"Difference in 95th percentile values \n between 1950-2024 vs. {settings['yearmin0']}-{settings['yearmax0']} dataset",fontsize=15)
 
-        figname = 'EVA_map_95percentile_comparison_between_periods_v5.jpg'  
-        fig.savefig(f'{dir_eva}/{figname}',format='jpg')
+        # figname = 'EVA_map_95percentile_comparison_between_periods_v5.jpg'  
+        # fig.savefig(f'{dir_eva}/{figname}',format='jpg')
 
-        # plots of extreme return periods and difference between periods
-        for rp in [1,10,100]:
-            rp_all = np.vstack((np.array(ds_gtsm_eva0[f'{str(rp)}_bf']),np.array(ds_gtsm_eva1[f'{str(rp)}_bf'])))
-            vrange1=[0,5]; vrange2=[-0.5,0.5];  
-            fig = plt.figure(figsize=(12,8))
-            axes_class = (GeoAxes, dict(projection=crt.crs.Robinson()))
-            axs = AxesGrid(fig, 111, axes_class=axes_class, nrows_ncols=(2, 1), share_all=True, axes_pad=1.0,cbar_location='right',cbar_mode='each',cbar_size='3%',cbar_pad=0.3, label_mode='keep')
+        # # plots of extreme return periods and difference between periods
+        # for rp in [1,10,100]:
+        #     rp_all = np.vstack((np.array(ds_gtsm_eva0[f'{str(rp)}_bf']),np.array(ds_gtsm_eva1[f'{str(rp)}_bf'])))
+        #     vrange1=[0,5]; vrange2=[-0.5,0.5];  
+        #     fig = plt.figure(figsize=(12,8))
+        #     axes_class = (GeoAxes, dict(projection=crt.crs.Robinson()))
+        #     axs = AxesGrid(fig, 111, axes_class=axes_class, nrows_ncols=(2, 1), share_all=True, axes_pad=1.0,cbar_location='right',cbar_mode='each',cbar_size='3%',cbar_pad=0.3, label_mode='keep')
 
-            ax = global_map(axs[0])
-            bs = ax.scatter(x=coord_x,y=coord_y,s=15,c=rp_all[1,:],transform=crt.crs.PlateCarree(),cmap=cmap3, vmin=vrange1[0], vmax=vrange1[1]); 
-            cbar = ax.cax.colorbar(bs); cbar.set_label('Still water level [m]',fontsize=13)
-            ax.set_title(f"Extreme values with {rp}-year return period \n based on {settings[f'yearmin1']}-{settings[f'yearmax1']}",fontsize=15)        
+        #     ax = global_map(axs[0])
+        #     bs = ax.scatter(x=coord_x,y=coord_y,s=15,c=rp_all[1,:],transform=crt.crs.PlateCarree(),cmap=cmap3, vmin=vrange1[0], vmax=vrange1[1]); 
+        #     cbar = ax.cax.colorbar(bs); cbar.set_label('Still water level [m]',fontsize=13)
+        #     ax.set_title(f"Extreme values with {rp}-year return period \n based on {settings[f'yearmin1']}-{settings[f'yearmax1']}",fontsize=15)        
 
-            ax = global_map(axs[1])
-            bs = ax.scatter(x=coord_x,y=coord_y,s=15,c=rp_all[1,:]-rp_all[0,:],transform=crt.crs.PlateCarree(),cmap=cmap4, vmin=vrange2[0], vmax=vrange2[1]); 
-            cbar = ax.cax.colorbar(bs); cbar.set_label('Still water level difference [m]',fontsize=13)
-            ax.set_title(f"Difference in extreme values with {rp}-year return period \n between 1950-2024 vs. {settings['yearmin0']}-{settings['yearmax0']} dataset",fontsize=15)        
-            figname = f'EVA_map_RP{rp}_comparison_between_periods_v5.jpg' 
-            fig.savefig(f'{dir_eva}/{figname}',format='jpg')
+        #     ax = global_map(axs[1])
+        #     bs = ax.scatter(x=coord_x,y=coord_y,s=15,c=rp_all[1,:]-rp_all[0,:],transform=crt.crs.PlateCarree(),cmap=cmap4, vmin=vrange2[0], vmax=vrange2[1]); 
+        #     cbar = ax.cax.colorbar(bs); cbar.set_label('Still water level difference [m]',fontsize=13)
+        #     ax.set_title(f"Difference in extreme values with {rp}-year return period \n between 1950-2024 vs. {settings['yearmin0']}-{settings['yearmax0']} dataset",fontsize=15)        
+        #     figname = f'EVA_map_RP{rp}_comparison_between_periods_v5.jpg' 
+        #     fig.savefig(f'{dir_eva}/{figname}',format='jpg')
 
-        # combined plot with 95th perc and 100 year return value
-        for rp in [100]:
-            rp_all = np.vstack((np.array(ds_gtsm_eva0[f'{str(rp)}_bf']),np.array(ds_gtsm_eva1[f'{str(rp)}_bf'])))
-            
-            mpl.rcParams.update({'font.size': 18})
-            csize = 15
-            fig = plt.figure(figsize=(17,12))
-            axes_class = (GeoAxes, dict(projection=crt.crs.Robinson()))
-            axs = AxesGrid(fig, 111, axes_class=axes_class, nrows_ncols=(2, 2), share_all=True, axes_pad=1.6,cbar_location='bottom',cbar_mode='each',cbar_size='8%',cbar_pad=0.4, label_mode='keep')
-    
-            # plot q95 and RP100 map
-            ax = global_map(axs[0])
-            bs = ax.scatter(x=coord_x,y=coord_y,s=csize,c=quan95[1,:],transform=crt.crs.PlateCarree(),cmap=cmap3, vmin=0, vmax=5);
-            cbar = ax.cax.colorbar(bs); cbar.set_label('Still water level [m]',fontsize=20)
-            ax.set_title('95th percentile values based on GTSM-ERA5-E',fontsize=22);
-
-            ax = global_map(axs[1])
-            bs = ax.scatter(x=coord_x,y=coord_y,s=csize,c=rp_all[1,:],transform=crt.crs.PlateCarree(),cmap=cmap3, vmin=0, vmax=8); 
-            cbar = ax.cax.colorbar(bs); cbar.set_label('Still water level [m]',fontsize=20)
-            ax.set_title('100-year return values based on GTSM-ERA5-E',fontsize=22);
-
-            # plot q95 and RP100 bias
-            ax = global_map(axs[2])
-            bs =ax.scatter(x=coord_x,y=coord_y,s=csize,c=quan95[1,:]-quan95[0,:],cmap=cmap4,transform=crt.crs.PlateCarree(),vmin=-0.03, vmax=0.03);
-
-            cbar = ax.cax.colorbar(bs); cbar.set_label('Still water level difference [m]',fontsize=20)
-            ax.set_title('Difference in 95th percentile values \n GTSM-ERA5-E (1950-2024) vs. GTSM-ERA5 (1979-2018)',fontsize=20);
-
-            ax = global_map(axs[3])
-            bs =ax.scatter(x=coord_x,y=coord_y,s=csize,c=rp_all[1,:]-rp_all[0,:],cmap=cmap4,transform=crt.crs.PlateCarree(),vmin=-0.5, vmax=0.5); #
-            cbar = ax.cax.colorbar(bs); cbar.set_label('Still water level difference [m]',fontsize=20); 
-            ax.set_title('Difference in 100-year return values \n GTSM-ERA5-E (1950-2024) vs. GTSM-ERA5 (1979-2018)',fontsize=20);
-            plt.tight_layout()   
-            figname = 'Map_comparison_model_GTSM-ERA5-E_vs_GTSM-ERA5.jpg'  
-            fig.savefig(f'{dir_eva}/{figname}',format='jpg')
-
-        # Plot difference between RP100 and HAT
-        ds_hat = xr.open_dataset(os.path.join(dir_postproc,'historical_tide_actual-value_1985-2014_HAT_v1.nc'))
         
-        mpl.rcParams.update({'font.size': 14})
-        fig = plt.figure(figsize=(10,5))
+        # combined plot with 95th perc and 100 year return value
+        rp_all = np.vstack((np.array(ds_gtsm_eva0[f'100_bf']),np.array(ds_gtsm_eva1[f'100_bf'])))
+        mpl.rcParams.update({'font.size': 18})
+        csize = 15
+        fig = plt.figure(figsize=(17,12))
         axes_class = (GeoAxes, dict(projection=crt.crs.Robinson()))
-        axs = AxesGrid(fig, 111, axes_class=axes_class, nrows_ncols=(1, 1), share_all=True, axes_pad=1,cbar_location='right',cbar_mode='each',cbar_size='3%',cbar_pad=0.3, label_mode='keep')
+        axs = AxesGrid(fig, 111, axes_class=axes_class, nrows_ncols=(2, 2), share_all=True, axes_pad=1.6,cbar_location='bottom',cbar_mode='each',cbar_size='8%',cbar_pad=0.4, label_mode='keep')
+
+        # plot q95 and RP100 map
         ax = global_map(axs[0])
-        bs = ax.scatter(x=coord_x,y=coord_y,s=15,c=ds_gtsm_eva1[f'100_bf'] - ds_hat['HAT'].values[0],transform=crt.crs.PlateCarree(),cmap=cmap3, vmin=0,vmax=1); 
-        cbar = ax.cax.colorbar(bs); cbar.set_label('Water level difference [m]',fontsize=15)
-        ax.set_title(f"Difference between RP100 of total water levels \n and Highest Astronomical Tide based on {settings[f'yearmin1']}-{settings[f'yearmax1']} dataset",fontsize=16)
-        figname = 'EVA_map_RP100_vs_HAT_GTSM-ERA5-E_v2.jpg'  
+        bs = ax.scatter(x=coord_x,y=coord_y,s=csize,c=ds_wl_q_ext['sea_level_detrended'].sel(quantile=0.95).values,transform=crt.crs.PlateCarree(),cmap=cmap3, vmin=0, vmax=5);
+        cbar = ax.cax.colorbar(bs); cbar.set_label('Still water level [m]',fontsize=20)
+        ax.set_title('95th percentile values based on GTSM-ERA5-E',fontsize=22);
+
+        ax = global_map(axs[1])
+        bs = ax.scatter(x=coord_x,y=coord_y,s=csize,c=rp_all[1,:],transform=crt.crs.PlateCarree(),cmap=cmap3, vmin=0, vmax=8); 
+        cbar = ax.cax.colorbar(bs); cbar.set_label('Still water level [m]',fontsize=20)
+        ax.set_title('100-year return values based on GTSM-ERA5-E',fontsize=22);
+
+        # plot q95 and RP100 bias
+        ax = global_map(axs[2])
+        bs =ax.scatter(x=coord_x,y=coord_y,s=csize,c=ds_wl_q_ext['sea_level_detrended'].sel(quantile=0.95).values-ds_wl_q_ori['sea_level_detrended'].sel(quantile=0.95).values,cmap=cmap4,transform=crt.crs.PlateCarree(),vmin=-0.1, vmax=0.1);
+        cbar = ax.cax.colorbar(bs); cbar.set_label('Still water level difference [m]',fontsize=20)
+        cbar.set_ticks([-0.1, -0.05, 0, 0.05, 0.1])        
+        ax.set_title('Difference in 95th percentile values \n GTSM-ERA5-E (1950-1979) vs. GTSM-ERA5 (1990-2019)',fontsize=20);
+
+        ax = global_map(axs[3])
+        bs =ax.scatter(x=coord_x,y=coord_y,s=csize,c=rp_all[1,:]-rp_all[0,:],cmap=cmap4,transform=crt.crs.PlateCarree(),vmin=-0.5, vmax=0.5); #
+        cbar = ax.cax.colorbar(bs); cbar.set_label('Still water level difference [m]',fontsize=20); 
+        ax.set_title('Difference in 100-year return values \n GTSM-ERA5-E (1950-2024) vs. GTSM-ERA5 (1979-2018)',fontsize=20);
+        plt.tight_layout()  
+
+        figname = 'Map_comparison_model_GTSM-ERA5-E_vs_GTSM-ERA5.jpg'  
         fig.savefig(f'{dir_eva}/{figname}',format='jpg')
+
+
+        # SURGE quantile differences
+        mpl.rcParams.update({'font.size': 18})
+        csize = 15
+        fig = plt.figure(figsize=(17,8))
+        axes_class = (GeoAxes, dict(projection=crt.crs.Robinson()))
+        axs = AxesGrid(fig, 111, axes_class=axes_class, nrows_ncols=(1, 2), share_all=True, axes_pad=1.6,cbar_location='bottom',cbar_mode='each',cbar_size='8%',cbar_pad=0.4, label_mode='keep')
+
+        # plot q99 surge
+        ax = global_map(axs[0])
+        bs = ax.scatter(x=ds_sur_q_ext.station_x_coordinate, y=ds_sur_q_ext.station_y_coordinate,
+                        s=csize, c=ds_sur_q_ext['surge'].sel(quantile=0.95).values, transform=crt.crs.PlateCarree(), cmap=cmap3, vmin=0, vmax=1.5);
+        cbar = ax.cax.colorbar(bs); cbar.set_label('Surge height [m]',fontsize=20)
+        ax.set_title('95th percentile values for surge height \n based on GTSM-ERA5-E (1950-1979)',fontsize=22);
+
+        # plot q99 surge bias
+        ax = global_map(axs[1])
+        bs =ax.scatter(x=ds_sur_q_ext.station_x_coordinate, y=ds_sur_q_ext.station_y_coordinate,
+                       s=csize, c=ds_sur_q_ext['surge'].sel(quantile=0.95).values-ds_sur_q_ori['surge'].sel(quantile=0.95).values,
+                       cmap=cmap4,transform=crt.crs.PlateCarree(),vmin=-0.15, vmax=0.15);
+        
+        cbar = ax.cax.colorbar(bs); cbar.set_label('Surge height difference [m]',fontsize=20)
+        ax.set_title('Difference in 95th percentile values for surge height \n GTSM-ERA5-E (1950-1979) vs. GTSM-ERA5 (1990-2019)',fontsize=20);
+
+        figname = 'Map_comparison_model_GTSM-ERA5-E_vs_GTSM-ERA5_surge_height_95th_perc.jpg'  
+        fig.savefig(f'{dir_eva}/{figname}',format='jpg')        
+
+
+        
+
+        # # Plot difference between RP100 and HAT
+        # ds_hat = xr.open_dataset(os.path.join(dir_postproc,'historical_tide_actual-value_1985-2014_HAT_v1.nc'))
+        
+        # mpl.rcParams.update({'font.size': 14})
+        # fig = plt.figure(figsize=(10,5))
+        # axes_class = (GeoAxes, dict(projection=crt.crs.Robinson()))
+        # axs = AxesGrid(fig, 111, axes_class=axes_class, nrows_ncols=(1, 1), share_all=True, axes_pad=1,cbar_location='right',cbar_mode='each',cbar_size='3%',cbar_pad=0.3, label_mode='keep')
+        # ax = global_map(axs[0])
+        # bs = ax.scatter(x=coord_x,y=coord_y,s=15,c=ds_gtsm_eva1[f'100_bf'] - ds_hat['HAT'].values[0],transform=crt.crs.PlateCarree(),cmap=cmap3, vmin=0,vmax=1); 
+        # cbar = ax.cax.colorbar(bs); cbar.set_label('Water level difference [m]',fontsize=15)
+        # ax.set_title(f"Difference between RP100 of total water levels \n and Highest Astronomical Tide based on {settings[f'yearmin1']}-{settings[f'yearmax1']} dataset",fontsize=16)
+        # figname = 'EVA_map_RP100_vs_HAT_GTSM-ERA5-E_v2.jpg'  
+        # fig.savefig(f'{dir_eva}/{figname}',format='jpg')
 
         # plot of difference in confidence interval width
         for rp in [100]:

@@ -27,6 +27,8 @@ sys.path.append("..")
 from path_dict import path_dict
 from scipy.stats.stats import pearsonr
 
+#file_tc_areas = os.path.join(r'/gpfs/work1/0/einf3499/validation_tc_areas','tropical_cyclone_affected_areas_polygons.geojson')
+
 # function for detrending of timeseries
 def detrend(ds: xr.DataArray, plot = False):
   ''' remove annual means and overall mean '''
@@ -45,10 +47,10 @@ if __name__ == "__main__":
     # location of EVA data
     dir_postproc = path_dict['postproc']
     dir_eva_main = os.path.join(dir_postproc,'EVA-GTSM-ERA5')
-    dir_eva = os.path.join(dir_postproc,'EVA-GTSM-ERA5',f'period_1950_2023_1hr_v3') 
+    dir_eva = os.path.join(dir_postproc,'EVA-GTSM-ERA5',f'period_1950_2024_1hr_v4') 
     
     #locate .csv files
-    filenames = 'ds_GTSM-ERA5_1950_2023_stations*eva.csv'
+    filenames = 'ds_GTSM-ERA5_1950_2024_stations*eva.csv'
     dir_data = os.path.join(dir_eva,filenames)
     file_list = glob.glob(dir_data)
     file_list.sort()
@@ -95,13 +97,13 @@ if __name__ == "__main__":
     ds_ges = xr.open_dataset(file_gesla); ds_ges.close()       
 
     # read GTSM dataset coordinates
-    
     dir_wlts = '/gpfs/work1/0/einf3499/06_model_runs/03_postprocessing/timeseries-GTSM-ERA5-hourly/waterlevel/'
     dir_wlts2 = '/gpfs/work1/0/einf3499/06_model_runs/03_postprocessing/timeseries-GTSM-ERA5-hourly-1979-2018/waterlevel/'
 
-    file_nc = os.path.join(dir_wlts,f'reanalysis_waterlevel_hourly_1950_01_v1.nc')
+    file_nc = os.path.join(dir_wlts,f'reanalysis_waterlevel_hourly_1950_01_v2.nc')
     ds_gtsm = xr.open_dataset(file_nc,chunks={'stations': 1000}); ds_gtsm.close()
-    ds_gtsm.load()
+    ds_gtsm.station_x_coordinate.load()
+    ds_gtsm.station_y_coordinate.load()
 
     # find GTSM locations corresponding to GESLA stations
     ids_gtsm=[]
@@ -120,14 +122,15 @@ if __name__ == "__main__":
     # get a list of all stations in the GTSM dataset
     stations = ds_gtsm.stations.values
 
-    # plot GESLA and GTSM locations
-    fig = plt.figure(figsize=(15,10))
-    axes_class = (GeoAxes, dict(projection=crt.crs.Robinson()))
-    axs = AxesGrid(fig, 111, axes_class=axes_class, nrows_ncols=(1, 1), label_mode='keep')
-    ax = global_map(axs[0])
-    #bs = ax.scatter(x=ds_ges.station_x_coordinate.values[ids_ges],y=ds_ges.station_y_coordinate.values[ids_ges],s=15,color='blue',transform=crt.crs.PlateCarree()); 
-    bs = ax.scatter(x=ds_gtsm.station_x_coordinate.values[ids_gtsm],y=ds_gtsm.station_y_coordinate.values[ids_gtsm],s=15,color='red',transform=crt.crs.PlateCarree()); 
-
+    # # plot GESLA and GTSM locations
+    # fig = plt.figure(figsize=(15,10))
+    # axes_class = (GeoAxes, dict(projection=crt.crs.Robinson()))
+    # axs = AxesGrid(fig, 111, axes_class=axes_class, nrows_ncols=(1, 1), label_mode='keep')
+    # ax = global_map(axs[0])
+    # #bs = ax.scatter(x=ds_ges.station_x_coordinate.values[ids_ges],y=ds_ges.station_y_coordinate.values[ids_ges],s=15,color='blue',transform=crt.crs.PlateCarree()); 
+    # bs = ax.scatter(x=ds_gtsm.station_x_coordinate.values[ids_gtsm],y=ds_gtsm.station_y_coordinate.values[ids_gtsm],s=15,color='red',transform=crt.crs.PlateCarree()); 
+    # fig.savefig(os.path.join(dir_eva_main, 'GTSM_stations_close_to_GESLA_stations_alltime.png'))
+    
     # check coverage
     numel_short = np.count_nonzero(~np.isnan(ds_ges.isel(stations=ids_ges).sel(time=slice('1979-01-01','2018-01-01'))['sea_level'].values))
     numel_long = np.count_nonzero(~np.isnan(ds_ges.isel(stations=ids_ges).sel(time=slice('1950-01-01','2025-01-01'))['sea_level'].values))
@@ -142,30 +145,32 @@ if __name__ == "__main__":
     print(f'Data coverage in the period 1950-1978: {data_coverage_extra}')
     
     #load GTSM timeseries for selected stations
-    # for year in range(1950,2025):
+    # for year in range(1980,2025):
     #     print(f'loading {year}')
     #     for mnth in range(1,13):
     #         print(f'loading {year}, month {mnth}')
     #         if ((year < 1980) | (year > 2018)):     # note that 1979 run is from the extended dataset with more realistic spinup           
-    #             file_nc = os.path.join(dir_wlts,f'reanalysis_waterlevel_hourly_{year}_{mnth:02d}_v1.nc')
-    #             ds = xr.open_dataset(file_nc,chunks={'stations': 1000}); ds.close()
+    #             file_nc = os.path.join(dir_wlts,f'reanalysis_waterlevel_hourly_{year}_{mnth:02d}_v2.nc')
+    #             ds = xr.open_dataset(file_nc,chunks={'stations': 1000});
     #             if "station_x_coordinate" in list(ds.data_vars):
     #                 ds = ds.set_coords(("station_x_coordinate", "station_y_coordinate"))                 
     #         else:
     #             file_nc = os.path.join(dir_wlts2,f'reanalysis_waterlevel_hourly_{year}_{mnth:02d}_v1.nc')
-    #             ds = xr.open_dataset(file_nc,chunks={'stations': 1000}); ds.close()
+    #             ds = xr.open_dataset(file_nc,chunks={'stations': 1000}); 
     #         ds=ds.sel(stations=stations[ids_gtsm],drop=True)
-    #         ds.load()
+    #         #ds.load()
     #         if ((year == 1950) & (mnth == 1)):
     #             ds_gtsm = ds
     #         else:
     #             ds_gtsm = xr.concat([ds_gtsm,ds],dim="time")
+    #         ds.close(); del ds
         
     # # save timeseries selection 
-    # ds_gtsm.to_netcdf("/gpfs/work1/0/einf3499/06_model_runs/03_postprocessing/EVA-GTSM-ERA5/period_1950_2024_1hr_selected_stations_GESLA.nc");
+    filename_geslaselection = r'/gpfs/work1/0/einf3499/06_model_runs/03_postprocessing/EVA-GTSM-ERA5/period_1950_2022_1hr_selected_stations_GESLA.nc'
+    # ds_gtsm.to_netcdf(filename_geslaselection)
 
     # open timeseries selection and detrend
-    ds_gtsm = xr.open_dataset("/gpfs/work1/0/einf3499/06_model_runs/03_postprocessing/EVA-GTSM-ERA5/period_1950_2022_1hr_selected_stations_GESLA.nc");
+    ds_gtsm = xr.open_dataset(filename_geslaselection)
     ds_gtsm['sea_level'] = ds_gtsm['waterlevel']
     ds_gtsm = ds_gtsm.drop(['waterlevel'])
     ds_gtsm = detrend(ds_gtsm)
@@ -192,6 +197,10 @@ if __name__ == "__main__":
     all_ts_corr = np.zeros(shape=(len(ids_gtsm), 2))
     all_ts_rmse_day = np.zeros(shape=(len(ids_gtsm), 2))
     all_ts_corr_day = np.zeros(shape=(len(ids_gtsm), 2))
+    all_ts_rmse_am = np.zeros(shape=(len(ids_gtsm), 2))
+    all_ts_corr_am = np.zeros(shape=(len(ids_gtsm), 2))
+    all_ts_rmse_month = np.zeros(shape=(len(ids_gtsm), 2))
+    all_ts_corr_month = np.zeros(shape=(len(ids_gtsm), 2))    
     
     # calculate statistics and make plots (optional with make_plots=0/1) per location
     for ss in range(0,len(ids_gtsm)):
@@ -224,11 +233,36 @@ if __name__ == "__main__":
         all_ts_corr[ss] = [pearsonr(ts_gtsm.values[~np.isnan(ts_gtsm.values)], ts_gesla.values[~np.isnan(ts_gesla.values)]).statistic, pearsonr(ts_gtsm.sel(time=slice('01-01-1979','31-12-2018')).values[~np.isnan(ts_gtsm.sel(time=slice('01-01-1979','31-12-2018')).values)], ts_gesla.sel(time=slice('01-01-1979','31-12-2018')).values[~np.isnan(ts_gesla.sel(time=slice('01-01-1979','31-12-2018')).values)]).statistic]
         all_ts_rmse[ss] = [np.sqrt(((ts_gtsm.values[~np.isnan(ts_gtsm.values)] - ts_gesla.values[~np.isnan(ts_gesla.values)]) ** 2).mean()), np.sqrt(((ts_gtsm.sel(time=slice('01-01-1979','31-12-2018')).values[~np.isnan(ts_gtsm.sel(time=slice('01-01-1979','31-12-2018')).values)] - ts_gesla.sel(time=slice('01-01-1979','31-12-2018')).values[~np.isnan(ts_gesla.sel(time=slice('01-01-1979','31-12-2018')).values)]) ** 2).mean())]
 
+        # Daily maxima
         ts_gtsm_day = ts_gtsm.resample(time='1D').max()
         ts_gesla_day = ts_gesla.resample(time='1D').max()
         all_ts_corr_day[ss] = [pearsonr(ts_gtsm_day.values[~np.isnan(ts_gtsm_day.values)], ts_gesla_day.values[~np.isnan(ts_gesla_day.values)]).statistic, pearsonr(ts_gtsm_day.sel(time=slice('01-01-1979','31-12-2018')).values[~np.isnan(ts_gtsm_day.sel(time=slice('01-01-1979','31-12-2018')).values)], ts_gesla_day.sel(time=slice('01-01-1979','31-12-2018')).values[~np.isnan(ts_gesla_day.sel(time=slice('01-01-1979','31-12-2018')).values)]).statistic]
         all_ts_rmse_day[ss] = [np.sqrt(((ts_gtsm_day.values[~np.isnan(ts_gtsm_day.values)] - ts_gesla_day.values[~np.isnan(ts_gesla_day.values)]) ** 2).mean()), np.sqrt(((ts_gtsm_day.sel(time=slice('01-01-1979','31-12-2018')).values[~np.isnan(ts_gtsm_day.sel(time=slice('01-01-1979','31-12-2018')).values)] - ts_gesla_day.sel(time=slice('01-01-1979','31-12-2018')).values[~np.isnan(ts_gesla_day.sel(time=slice('01-01-1979','31-12-2018')).values)]) ** 2).mean())]
         del ts_gtsm_day, ts_gesla_day
+
+        # Annual maxima
+        ts_gtsm_am = ts_gtsm.groupby(ts_gtsm['time'].dt.year).max()
+        ts_gesla_am = ts_gesla.groupby(ts_gesla['time'].dt.year).max()
+        all_ts_corr_am[ss] = [pearsonr(ts_gtsm_am.values[~np.isnan(ts_gtsm_am.values)], ts_gesla_am.values[~np.isnan(ts_gesla_am.values)]).statistic, pearsonr(ts_gtsm_am.sel(year=slice(1979,2018)).values[~np.isnan(ts_gtsm_am.sel(year=slice(1979,2018)).values)], ts_gesla_am.sel(year=slice(1979,2018)).values[~np.isnan(ts_gesla_am.sel(year=slice(1979,2018)).values)]).statistic]
+        all_ts_rmse_am[ss] = [np.sqrt(((ts_gtsm_am.values[~np.isnan(ts_gtsm_am.values)] - ts_gesla_am.values[~np.isnan(ts_gesla_am.values)]) ** 2).mean()), np.sqrt(((ts_gtsm_am.sel(year=slice(1979,2018)).values[~np.isnan(ts_gtsm_am.sel(year=slice(1979,2018)).values)] - ts_gesla_am.sel(year=slice(1979,2018)).values[~np.isnan(ts_gesla_am.sel(year=slice(1979,2018)).values)]) ** 2).mean())]
+
+        # Monthly maxima
+        ts_gtsm_month = ts_gtsm.resample(time='1M').max()
+        ts_gesla_month = ts_gesla.resample(time='1M').max()
+        all_ts_corr_month[ss] = [pearsonr(ts_gtsm_month.values[~np.isnan(ts_gtsm_month.values)], ts_gesla_month.values[~np.isnan(ts_gesla_month.values)]).statistic, pearsonr(ts_gtsm_month.sel(time=slice('01-01-1979','31-12-2018')).values[~np.isnan(ts_gtsm_month.sel(time=slice('01-01-1979','31-12-2018')).values)], ts_gesla_month.sel(time=slice('01-01-1979','31-12-2018')).values[~np.isnan(ts_gesla_month.sel(time=slice('01-01-1979','31-12-2018')).values)]).statistic]
+        all_ts_rmse_month[ss] = [np.sqrt(((ts_gtsm_month.values[~np.isnan(ts_gtsm_month.values)] - ts_gesla_month.values[~np.isnan(ts_gesla_month.values)]) ** 2).mean()), np.sqrt(((ts_gtsm_month.sel(time=slice('01-01-1979','31-12-2018')).values[~np.isnan(ts_gtsm_month.sel(time=slice('01-01-1979','31-12-2018')).values)] - ts_gesla_month.sel(time=slice('01-01-1979','31-12-2018')).values[~np.isnan(ts_gesla_month.sel(time=slice('01-01-1979','31-12-2018')).values)]) ** 2).mean())]        
+
+        # # Plot AM validation
+        # fig,ax=plt.subplots(figsize=(15,7))
+        # ts_gesla_am.plot(ax=ax, label='GESLA')
+        # ts_gtsm_am.plot(ax=ax, label='GTSM-ERA5')
+        # ax.legend()
+        # ax.grid()
+        # figname = f'station_{str(int(stations[st_id_gtsm])).zfill(5)}_AnnualMaxima_GTSM_vs_GESLA.png' 
+        # fig.savefig(f'{dir_eva_main}/timeseries_plots_GESLA/AnnualMaxima/{figname}')
+        # plt.clf()
+        # del ts_gtsm_am, ts_gesla_am
+        
         
         # prepare EVA outputs
         # GTSM full timeseries
@@ -313,6 +347,7 @@ if __name__ == "__main__":
             ts = ax4.plot(ts_gesla['time'].values,ts_gesla.values,'r.',label='GESLA');
             ts = ax4.plot(ts_gtsm['time'].values,ts_gtsm.values,'b-',alpha=0.5,label='GTSM-ERA5');
             ax4.set_ylabel('Still water level [m]')
+            ax4.legend()
             ax4.grid(); ax4.title.set_text('Full timeseries')
 
             # plot density scatter
@@ -334,13 +369,46 @@ if __name__ == "__main__":
 
             del ts_gtsm, ts_gesla, model_summary_gtsm, model_summary_gesla
 
-            figname = f'EVA_station_{str(int(stations[st_id_gtsm])).zfill(5)}_RV_1950-2022_vs_GESLA.png' 
+            figname = f'EVA_station_{str(int(stations[st_id_gtsm])).zfill(5)}_RV_1950-2024_vs_GESLA.png' 
             fig.savefig(f'{dir_eva_main}/timeseries_plots_GESLA/{figname}')
             plt.clf()
-    
+
+    # export data
+    dir_out = os.path.join(dir_eva_main,'validation_statistics_GTSM_vs_GESLA')
+    ds_stats = xr.Dataset(data_vars=dict(
+            RP100_GTSM=(["stations", "period"], all_rp100[:,:2]),
+            RP100_GESLA=(["stations", "period"], all_rp100[:,2:]),
+        
+            RP10_GTSM=(["stations", "period"], all_rp10[:,:2]),
+            RP10_GESLA=(["stations", "period"], all_rp10[:,2:]),
+        
+            quan95_GTSM=(["stations", "period"], all_q95[:,:2]),
+            quan95_GESLA=(["stations", "period"], all_q95[:,2:]),
+        
+            quan99_GTSM=(["stations", "period"], all_q99[:,:2]),
+            quan99_GESLA=(["stations", "period"], all_q99[:,2:]),
+
+            timeseries_RMSE_hourly=(["stations", "period"], all_ts_rmse),
+            timeseries_corr_hourly=(["stations", "period"], all_ts_corr),
+
+            timeseries_RMSE_dailymax=(["stations", "period"], all_ts_rmse_day),
+            timeseries_corr_dailymax=(["stations", "period"], all_ts_corr_day),
+
+            timeseries_RMSE_annualmax=(["stations", "period"], all_ts_rmse_am),
+            timeseries_corr_annualmax=(["stations", "period"], all_ts_corr_am),
+
+            timeseries_RMSE_monthmax=(["stations", "period"], all_ts_rmse_month),
+            timeseries_corr_monthmax=(["stations", "period"], all_ts_corr_month),        
+        ),
+        coords=dict(
+            stations=ids_gtsm,
+            period=['original','extended'],
+        ),
+        attrs=dict(description="Original period is 1979-2018, extended period is 1950-2020 (GESLA only extends to 2020)"),
+    )
+    ds_stats.to_netcdf(os.path.join(dir_out,'statistics_validation_GTSM_vs_GESLA.nc'))
 
     # print statistics
-
     print(f'Hourly timeseries: RMSE, GTSM-ERA5-E: {np.mean(all_ts_rmse[:,0]):.3} ({np.std(all_ts_rmse[:,0]):.3})')
     print(f'Hourly timeseries: RMSE, GTSM-ERA5: {np.mean(all_ts_rmse[:,1]):.3} ({np.std(all_ts_rmse[:,1]):.3})')
 
@@ -352,6 +420,18 @@ if __name__ == "__main__":
 
     print(f'Daily max timeseries: pearson nr, GTSM-ERA5-E: {np.mean(all_ts_corr_day[:,0]):.3} ({np.std(all_ts_corr_day[:,0]):.3})')
     print(f'Daily max timeseries: pearson nr, GTSM-ERA5: {np.mean(all_ts_corr_day[:,1]):.3} ({np.std(all_ts_corr_day[:,1]):.3})')
+
+    print(f'Annual maxima timeseries: RMSE, GTSM-ERA5-E: {np.mean(all_ts_rmse_am[:,0]):.3} ({np.std(all_ts_rmse_am[:,0]):.3})')
+    print(f'Annual maxima timeseries: RMSE, GTSM-ERA5: {np.mean(all_ts_rmse_am[:,1]):.3} ({np.std(all_ts_rmse_am[:,1]):.3})')
+
+    print(f'Annual maxima timeseries: pearson nr, GTSM-ERA5-E: {np.mean(all_ts_corr_am[:,0]):.3} ({np.std(all_ts_corr_am[:,0]):.3})')
+    print(f'Annual maxima timeseries: pearson nr, GTSM-ERA5: {np.mean(all_ts_corr_am[:,1]):.3} ({np.std(all_ts_corr_am[:,1]):.3})')    
+
+    print(f'Monthly maxima timeseries: RMSE, GTSM-ERA5-E: {np.mean(all_ts_rmse_am[:,0]):.3} ({np.std(all_ts_rmse_am[:,0]):.3})')
+    print(f'monthly maxima timeseries: RMSE, GTSM-ERA5: {np.mean(all_ts_rmse_am[:,1]):.3} ({np.std(all_ts_rmse_am[:,1]):.3})')
+
+    print(f'Monthly maxima timeseries: pearson nr, GTSM-ERA5-E: {np.mean(all_ts_corr_month[:,0]):.3} ({np.std(all_ts_corr_month[:,0]):.3})')
+    print(f'Monthly maxima timeseries: pearson nr, GTSM-ERA5: {np.mean(all_ts_corr_month[:,1]):.3} ({np.std(all_ts_corr_month[:,1]):.3})')       
     
     print('  ')
     print(f'95th percentile: Mean bias GTSM-ERA5-E: {np.mean(all_q95[:,0]-all_q95[:,2]):.3} ({np.std(all_q95[:,0]-all_q95[:,2]):.3})')
@@ -420,17 +500,29 @@ if __name__ == "__main__":
     #ax.gridlines(draw_labels=False, linewidth=0.5, color='gray', alpha=0.5, linestyle='--')
     plt.tight_layout()
 
-    # plot RMSE
+    # # plot RMSE
+    # ax = global_map(axs[4])
+    # bs =ax.scatter(x=ds_ges.station_x_coordinate.values[ids_ges],y=ds_ges.station_y_coordinate.values[ids_ges],s=csize,c=all_ts_rmse_day[:,0],cmap=cmap3,transform=crt.crs.PlateCarree(),vmin=0, vmax=1);
+    # cbar = ax.cax.colorbar(bs); cbar.set_label('RMSE [m]',fontsize=20)
+    # ax.set_title('Root Mean Square Error (RMSE) \n of the daily maxima timeseries for GTSM-ERA5-E',fontsize=22);
+
+    # # plot Pearson corr. coeff.
+    # ax = global_map(axs[5])
+    # bs =ax.scatter(x=ds_ges.station_x_coordinate.values[ids_ges],y=ds_ges.station_y_coordinate.values[ids_ges],s=csize,c=all_ts_corr_day[:,0],cmap=cmap3,transform=crt.crs.PlateCarree(),vmin=0.4, vmax=1);
+    # cbar = ax.cax.colorbar(bs); cbar.set_label('Pearson corr. coef. [-]',fontsize=20)
+    # ax.set_title('Pearson correlation coefficient \n for daily maxima timeseries of GTSM-ERA5-E',fontsize=22);
+
+    # plot RMSE for annual maxima
     ax = global_map(axs[4])
-    bs =ax.scatter(x=ds_ges.station_x_coordinate.values[ids_ges],y=ds_ges.station_y_coordinate.values[ids_ges],s=csize,c=all_ts_rmse_day[:,0],cmap=cmap3,transform=crt.crs.PlateCarree(),vmin=0, vmax=1);
+    bs =ax.scatter(x=ds_ges.station_x_coordinate.values[ids_ges],y=ds_ges.station_y_coordinate.values[ids_ges],s=csize,c=all_ts_rmse_month[:,0],cmap='viridis',transform=crt.crs.PlateCarree(),vmin=0, vmax=1);
     cbar = ax.cax.colorbar(bs); cbar.set_label('RMSE [m]',fontsize=20)
-    ax.set_title('Root Mean Square Error (RMSE) \n of the daily maxima timeseries for GTSM-ERA5-E',fontsize=22);
+    ax.set_title('Root Mean Square Error (RMSE) \n of the monthly maxima timeseries for GTSM-ERA5-E',fontsize=22);
 
-    # plot Pearson corr. coeff.
+    # plot Pearson corr. coeff. - annual maxima
     ax = global_map(axs[5])
-    bs =ax.scatter(x=ds_ges.station_x_coordinate.values[ids_ges],y=ds_ges.station_y_coordinate.values[ids_ges],s=csize,c=all_ts_corr_day[:,0],cmap=cmap3,transform=crt.crs.PlateCarree(),vmin=0.4, vmax=1);
+    bs =ax.scatter(x=ds_ges.station_x_coordinate.values[ids_ges],y=ds_ges.station_y_coordinate.values[ids_ges],s=csize,c=all_ts_corr_month[:,0],cmap='viridis_r',transform=crt.crs.PlateCarree(),vmin=0.4, vmax=1);
     cbar = ax.cax.colorbar(bs); cbar.set_label('Pearson corr. coef. [-]',fontsize=20)
-    ax.set_title('Pearson correlation coefficient \n for daily maxima timeseries of GTSM-ERA5-E',fontsize=22);
+    ax.set_title('Pearson correlation coefficient \n for monthly maxima timeseries of GTSM-ERA5-E',fontsize=22);
 
-    figname = 'Map_comparison_GESLA.jpg'  
+    figname = 'Map_comparison_GESLA_v4.jpg'  
     fig.savefig(f'{dir_eva_main}/{figname}',format='jpg',dpi=300)
