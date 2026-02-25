@@ -5,10 +5,14 @@ Created on Fri Jun  9 13:34:37 2023
 @author: veenstra
 """
 
-base_dir = '/gpfs/work1/0/einf3499' #snellius
+#base_dir = '/gpfs/work1/0/einf3499' #snellius
+base_dir = '/p/1230882-emodnet_hrsm/GTSM-ERA5' # p:/ drive
 
-path_dict = {'git_checkout': base_dir+'/00_scripts_git', 
-             'meteo_raw':    base_dir+'/01_meteo_ERA5', 
+path_dict = {
+#	     'git_checkout': base_dir+'/00_scripts_git', 
+#             'meteo_raw':    base_dir+'/01_meteo_ERA5', 
+	      'meteo_raw':    '/p/1230882-emodnet_hrsm/data/ERA5',
+
              'meteo_fm':     base_dir+'/02_meteo_ERA5_FM', 
              'tides_CDS':    base_dir+'/03_tides_CDS', 
              'meteo_msl':    base_dir+'/04_meteo_msl',
@@ -16,8 +20,9 @@ path_dict = {'git_checkout': base_dir+'/00_scripts_git',
              'modelfiles':   base_dir+'/06_model_runs/01_model_input_files',
              'modelruns':    base_dir+'/06_model_runs/02_slr_tide_surge_runs',
              'postproc':     base_dir+'/06_model_runs/03_postprocessing', 
-             'fm_container': base_dir+'/99_delft3dfm_containers/delft3dfm_2022.04',
-             'gesla' :       base_dir+'/data/GESLA',
+	     'fm_container': '',
+#             'fm_container': base_dir+'/99_delft3dfm_containers/delft3dfm_2022.04',
+#             'gesla' :       base_dir+'/data/GESLA',
              }
 
 if __name__ == "__main__":
