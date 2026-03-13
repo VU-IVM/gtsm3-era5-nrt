@@ -2,6 +2,7 @@
 
 import os
 import calendar
+import xarray
 import cdsapi
 import sys
 sys.path.append("..")

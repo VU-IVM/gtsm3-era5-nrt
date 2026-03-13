@@ -45,7 +45,7 @@ def convert2FM(yr):
       if "valid_time" in x.coords:
           x = x.rename({'valid_time':"time"})
       if "expver" in x.coords:
-          x = x.drop({"expver"})
+          x = x.drop_vars({"expver"})
       return x
     
     data_xr = xr.open_mfdataset(file_nc_list,preprocess=preprocess,

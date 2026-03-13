@@ -3,6 +3,7 @@ channels:
   - conda-forge
   - defaults
 dependencies:
+  - pip
   - python=3.11
   - pandas
   - xarray
@@ -13,3 +14,5 @@ dependencies:
   - cartopy
   - netCDF4
   - h5netcdf
+  - pip:
+    - cdsapi
