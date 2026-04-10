@@ -245,7 +245,7 @@ if __name__ == "__main__":
             ax0 = global_map(ax0)
             bs0 = ax0.scatter(x=ds_ges.station_x_coordinate.values[ids_ges],y=ds_ges.station_y_coordinate.values[ids_ges],s=15,color='blue',transform=crt.crs.PlateCarree()); # all considered GESLA stations
             bs = ax0.scatter(x=ts_gtsm.station_x_coordinate.values,y=ts_gtsm.station_y_coordinate.values,marker ='.',s=200,transform=crt.crs.PlateCarree(),facecolors='none',edgecolors='red',linewidth=3); 
-            ax0.title.set_text(f"Location {int(ds_gtsm.sel(stations=st_gtsm).stations.values)}: {ds_ges.station_name.values[ids_ges]}")
+            ax0.title.set_text(f"Location {int(ts_gtsm.stations.values)}: {ds_ges.station_name.values[ids_ges[ss]]}")
         
             # plot zoomed location
             bs0 = ax1.scatter(x=ts_gesla.station_x_coordinate.values,y=ts_gesla.station_y_coordinate.values,s=15,color='blue',transform=crt.crs.PlateCarree()); 
@@ -264,31 +264,30 @@ if __name__ == "__main__":
             ax2.grid(); ax2.title.set_text('Full timeseries')
 
             # plot density scatter
-            ax3.hist2d(ts_gtsm.sel(time=slice("1950-01-01","1978-12-31")).values[~np.isnan(ts_gtsm.values)], 
-                       ts_gesla.sel(time=slice("1950-01-01","1978-12-31")).values[~np.isnan(ts_gesla.values)], bins=(300, 30), cmap='Blues')
+            ax3.hist2d(ts_gtsm.sel(time=slice("1950-01-01","1978-12-31")).values[~np.isnan(ts_gtsm.sel(time=slice("1950-01-01","1978-12-31")).values)], 
+                       ts_gesla.sel(time=slice("1950-01-01","1978-12-31")).values[~np.isnan(ts_gesla.sel(time=slice("1950-01-01","1978-12-31")).values)], bins=(300, 30), cmap='Blues')
             tmp = np.nanmax(ts_gesla.sel(time=slice("1950-01-01","1978-12-31")).values)
             ax3.set(xlim=(-tmp, tmp), ylim=(-tmp, tmp))
             ax3.plot([-tmp,tmp],[-tmp,tmp])
             ax3.set_aspect('equal')  
-            corr = pearsonr(ts_gtsm.sel(time=slice("1950-01-01","1978-12-31")).values[~np.isnan(ts_gtsm.values)], ts_gesla.sel(time=slice("1950-01-01","1978-12-31")).values[~np.isnan(ts_gesla.values)])
+            corr = pearsonr(ts_gtsm.sel(time=slice("1950-01-01","1978-12-31")).values[~np.isnan(ts_gtsm.sel(time=slice("1950-01-01","1978-12-31")).values)], ts_gesla.sel(time=slice("1950-01-01","1978-12-31")).values[~np.isnan(ts_gesla.sel(time=slice("1950-01-01","1978-12-31")).values)])
             ax3.text(tmp,-tmp,f'corr={np.round(corr.statistic,3)}', verticalalignment ='bottom', horizontalalignment ='right', fontsize = 14, fontweight ='bold'); 
             ax3.set_xlabel('GTSM-ERA5 [m]'); ax3.set_ylabel('GESLA [m]'); ax3.set_title('1950-1978')
 
-            ax4.hist2d(ts_gtsm.sel(time=slice("1979-01-01","2020-12-31")).values[~np.isnan(ts_gtsm.values)], 
-                       ts_gesla.sel(time=slice("1979-01-01","2020-12-31")).values[~np.isnan(ts_gesla.values)], bins=(300, 30), cmap='Blues')
+            ax4.hist2d(ts_gtsm.sel(time=slice("1979-01-01","2020-12-31")).values[~np.isnan(ts_gtsm.sel(time=slice("1979-01-01","2020-12-31")).values)], 
+                       ts_gesla.sel(time=slice("1979-01-01","2020-12-31")).values[~np.isnan(ts_gesla.sel(time=slice("1979-01-01","2020-12-31")).values)], bins=(300, 30), cmap='Blues')
             tmp = np.nanmax(ts_gesla.sel(time=slice("1979-01-01","2020-12-31")).values)
             ax4.set(xlim=(-tmp, tmp), ylim=(-tmp, tmp)) 
             ax4.plot([-tmp,tmp],[-tmp,tmp])
             ax4.set_aspect('equal')
-            corr = pearsonr(ts_gtsm.sel(time=slice("1979-01-01","2020-12-31")).values[~np.isnan(ts_gtsm.values)], ts_gesla.sel(time=slice("1979-01-01","2020-12-31")).values[~np.isnan(ts_gesla.values)])
+            corr = pearsonr(ts_gtsm.sel(time=slice("1979-01-01","2020-12-31")).values[~np.isnan(ts_gtsm.sel(time=slice("1979-01-01","2020-12-31")).values)], ts_gesla.sel(time=slice("1979-01-01","2020-12-31")).values[~np.isnan(ts_gesla.sel(time=slice("1979-01-01","2020-12-31")).values)])
             ax4.text(tmp,-tmp,f'corr={np.round(corr.statistic,3)}', verticalalignment ='bottom', horizontalalignment ='right', fontsize = 14, fontweight ='bold');
             ax4.set_xlabel('GTSM-ERA5 [m]'); ax4.set_ylabel('GESLA [m]'); ax4.set_title('1979-2020')
 
-            del ts_gtsm, ts_gesla
-
-            figname = f'validation_{str(int(ds_gtsm.sel(stations=st_gtsm).stations.values)).zfill(5)}_{ds_ges.station_name.values[ids_ges]}.png' 
+            figname = f'validation_{str(int(ts_gtsm.stations.values)).zfill(5)}_{ds_ges.station_name.values[ids_ges[ss]]}.png' 
             fig.savefig(f'{dir_out}/{figname}')
             plt.clf()
+            del ts_gtsm, ts_gesla
 
     # export data
 
