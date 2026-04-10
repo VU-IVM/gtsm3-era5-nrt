@@ -2,7 +2,7 @@
 # Author: N. Aleksandrova
 # Date created: July 2023
 # Remarks: This script is for producing various global and location-specific plots of water levels based on the GTSM-ERA5 model runs. 
-
+#%%
 import pandas as pd
 from global_map import global_map
 import warnings
@@ -18,16 +18,14 @@ import matplotlib.ticker as tkr
 import matplotlib.pyplot as plt
 from mpl_toolkits.axes_grid1 import AxesGrid
 from cartopy.mpl.geoaxes import GeoAxes
-from cartopy.mpl.ticker import LongitudeFormatter, LatitudeFormatter
 import cartopy as crt
 from pyextremes import EVA
-from pyextremes.plotting import plot_return_values
 from pyextremes.extremes import get_return_periods
 
 # choose which plots to make
-make_global_plots = 1
-make_local_plots = 0
-
+make_global_plots = 0
+make_local_plots = 1
+#%%
 # function for detrending timeseries
 def detrend(ds: xr.DataArray, plot = False):
   ''' remove annual means and overall mean '''
@@ -39,6 +37,7 @@ def detrend(ds: xr.DataArray, plot = False):
       ds.sea_level.plot.line(x='time',ax=axs[0], add_legend=False)   
       ds.sea_level_detrended.plot.line(x='time',ax=axs[1],add_legend=False)  
   return ds
+#%%
 
 if __name__ == "__main__":   
     # EVA was performed for two periods that will be compared:
@@ -48,14 +47,15 @@ if __name__ == "__main__":
     rps =[1,10,50,100]    
     
     # location of EVA data
-    sys.path.append("..")
-    from path_dict import path_dict
-    dir_postproc = path_dict['postproc']
-    dir_eva = os.path.join(dir_postproc,'EVA-GTSM-ERA5')
-    
+    #sys.path.append("..")
+    #from path_dict import path_dict
+    #dir_postproc = path_dict['postproc']
+    #dir_eva = os.path.join(dir_postproc,'EVA-GTSM-ERA5')
+    dir_eva = r'p:\archivedprojects\11210221-gtsm-reanalysis\GTSM-ERA5-E_dataset\EVA-GTSM-ERA5'
+
     #specify directories where timeseries data is stored
-    dir_eva0 = os.path.join(dir_postproc,'EVA-GTSM-ERA5',f'period_{settings["yearmin0"]}_{settings["yearmax0"]}_{settings["mode0"]}_v2')
-    dir_eva1 = os.path.join(dir_postproc,'EVA-GTSM-ERA5',f'period_{settings["yearmin1"]}_{settings["yearmax1"]}_{settings["mode1"]}_v4')
+    dir_eva0 = os.path.join(dir_eva,f'period_{settings["yearmin0"]}_{settings["yearmax0"]}_{settings["mode0"]}_v2')
+    dir_eva1 = os.path.join(dir_eva,f'period_{settings["yearmin1"]}_{settings["yearmax1"]}_{settings["mode1"]}_v4')
     
     #locate .csv files
     filenames0 = 'ds_GTSM-ERA5_%s_%s_stations*eva.csv' % (str(settings['yearmin0']),str(settings['yearmax0']))
@@ -91,22 +91,22 @@ if __name__ == "__main__":
         coord_y = np.append(coord_y, ds['station_y_coordinate'].values)
         stations = np.append(stations, ds['stations'].values)
 
-    # read  waterlevel quantiles
-    file_list_nc = glob.glob(os.path.join(dir_eva,'surge_stats','GTSM_ERA5_wl_quantiles_1950_1979_stations*.nc'))
-    ds_wl_q_ext = xr.open_mfdataset(file_list_nc); 
-    del file_list_nc
+    # # read  waterlevel quantiles
+    # file_list_nc = glob.glob(os.path.join(dir_eva,'surge_stats','GTSM_ERA5_wl_quantiles_1950_1979_stations*.nc'))
+    # ds_wl_q_ext = xr.open_mfdataset(file_list_nc); 
+    # del file_list_nc
 
-    file_list_nc = glob.glob(os.path.join(dir_eva,'surge_stats','GTSM_ERA5_wl_quantiles_1990_2019_stations*.nc'))
-    ds_wl_q_ori = xr.open_mfdataset(file_list_nc); 
-    del file_list_nc
+    # file_list_nc = glob.glob(os.path.join(dir_eva,'surge_stats','GTSM_ERA5_wl_quantiles_1990_2019_stations*.nc'))
+    # ds_wl_q_ori = xr.open_mfdataset(file_list_nc); 
+    # del file_list_nc
    
-    # read surge quantiles 
-    file_list_nc = glob.glob(os.path.join(dir_eva,'surge_stats','GTSM_ERA5_quantiles_1950_1979_stations*.nc'))
-    ds_sur_q_ext = xr.open_mfdataset(file_list_nc)
-    del file_list_nc
-    file_list_nc = glob.glob(os.path.join(dir_eva,'surge_stats','GTSM_ERA5_quantiles_1990_2019_stations*.nc'))
-    ds_sur_q_ori = xr.open_mfdataset(file_list_nc)
-    del file_list_nc
+    # # read surge quantiles 
+    # file_list_nc = glob.glob(os.path.join(dir_eva,'surge_stats','GTSM_ERA5_quantiles_1950_1979_stations*.nc'))
+    # ds_sur_q_ext = xr.open_mfdataset(file_list_nc)
+    # del file_list_nc
+    # file_list_nc = glob.glob(os.path.join(dir_eva,'surge_stats','GTSM_ERA5_quantiles_1990_2019_stations*.nc'))
+    # ds_sur_q_ori = xr.open_mfdataset(file_list_nc)
+    # del file_list_nc
 
     # PLOTTING
     print('Plotting... ')
@@ -275,34 +275,55 @@ if __name__ == "__main__":
     if make_local_plots:
     # Plotting comparison between periods with timeseries per location
     
-        coords_locs = [[52.481, 4.506], # IJmuiden
-                   [-4.0884, 39.734], # Mombasa, Kenya
-                  [-34.381, -58.186], # Buenos Aires
-                  [29.242, -94.767], # Houston
-                  [40.504, -73.741], #NY
-                  [31.574, 131.417], # Aburatsu, Japan
-                  [42.341, -70.984], #Boston
-                  [-22.923, -43.154], #Rio de J
-                  [60.142, -1.145], #Lerwick, UK
-                  [-6.163, 39.161]] # Zanzibar, Tanzania
-        citynames = ['IJmuiden, NL','Mombasa, Kenya','Buenos Aires, Argentina','Houston, USA','New York, USA','Aburatsu, Japan','Boston, USA','Rio de Janeiro, Brazil','Lerwick, UK','Zanzibar, Tanzania']
+        # coords_locs = [[52.481, 4.506], # IJmuiden
+        #            [-4.0884, 39.734], # Mombasa, Kenya
+        #           [-34.381, -58.186], # Buenos Aires
+        #           [29.242, -94.767], # Houston
+        #           [40.504, -73.741], #NY
+        #           [31.574, 131.417], # Aburatsu, Japan
+        #           [42.341, -70.984], #Boston
+        #           [-22.923, -43.154], #Rio de J
+        #           [60.142, -1.145], #Lerwick, UK
+        #           [-6.163, 39.161]] # Zanzibar, Tanzania
+        #citynames = ['IJmuiden, NL','Mombasa, Kenya','Buenos Aires, Argentina','Houston, USA','New York, USA','Aburatsu, Japan','Boston, USA','Rio de Janeiro, Brazil','Lerwick, UK','Zanzibar, Tanzania']
     
-        dir_wlts = '/gpfs/work1/0/einf3499/06_model_runs/03_postprocessing/timeseries-GTSM-ERA5-hourly/waterlevel/'
-        dir_wlts2 = '/gpfs/work1/0/einf3499/06_model_runs/03_postprocessing/timeseries-GTSM-ERA5-hourly-1979-2018/waterlevel/'
+        coords_locs = [[60.4, 5.32], # Bergen, Norway
+                       [50.1, -5.54], # Newlyn, UK
+                       #[53.87, 8.725], # Cuxhaven, Germany
+                       [55.47, 8.43], # Esbjerg, Denmark
+                       [40.504, -73.741], #NY
+                       [29.31, -94.79], # Galveston, USA	
+                       [32.43, 131.67], # Hosojima, Japan
+                       [-32.06, 115.74], # Fremantle, Australia	
+                       [48.42, -123.37] # Victoria, Canada	
+                       ]
+        citynames = ['Bergen, Norway','Newlyn, UK','Esbjerg, Denmark','New York, USA','Galveston, USA','Hosojima, Japan','Fremantle, Australia','Victoria, Canada']
+        geslanames = ['Bergen','Newlyn_Cornwall','Esbjerg','New_York_NY','Galveston_Pier_21','Hosojima','Fremantle','Victoria_BC']
 
-        file_nc = os.path.join(dir_wlts,f'reanalysis_waterlevel_hourly_1950_01_v1.nc')
-        ds = xr.open_dataset(file_nc,chunks={'stations': 1000}); ds.close()
-        ds.load()
+        dir_wlts = r'p:\archivedprojects\11210221-gtsm-reanalysis\GTSM-ERA5-E_dataset\waterlevel'
+        dir_wlts2 = r'p:\archivedprojects\11210221-gtsm-reanalysis\GTSM-ERA5-E_dataset\waterlevel'
+
+        ds_gtsm = xr.open_dataset(r'p:\archivedprojects\11210221-gtsm-reanalysis\GTSM-ERA5-E_dataset\EVA-GTSM-ERA5\period_1950_2022_1hr_selected_stations_GESLA.nc')
 
         loc_ind=[]
-        for ii in range(0,10):
-            abslat = np.abs(ds.station_y_coordinate-coords_locs[ii][0])
-            abslon = np.abs(ds.station_x_coordinate-coords_locs[ii][1])
+        for ii in range(0,8):
+            abslat = np.abs(ds_gtsm.station_y_coordinate-coords_locs[ii][0])
+            abslon = np.abs(ds_gtsm.station_x_coordinate-coords_locs[ii][1])
             loc_ind.append(np.argmin(abslon.values**2 + abslat.values**2))
 
         ids = loc_ind
-        stations = ds.stations.values
-    
+        stations = ds_gtsm.stations.values
+
+        ds_ges = xr.open_dataset(r'p:\archivedprojects\11210221-gtsm-reanalysis\GESLA\ds_gesla_1950_2022_allstations_50yr_max25prt_missing.nc')
+        ds_ges_sel = ds_ges.where(ds_ges.station_name.isin(geslanames),drop=True)
+        loc_ind_ges=[]
+        for ii in range(0,8):
+            abslat = np.abs(ds_ges_sel.station_y_coordinate-coords_locs[ii][0])
+            abslon = np.abs(ds_ges_sel.station_x_coordinate-coords_locs[ii][1])
+            loc_ind_ges.append(np.argmin(abslon.values**2 + abslat.values**2))
+        ids_ges = loc_ind_ges
+
+
         #load long timeseries
 #        for year in range(1950,2025):
 #            print(f'loading {year}')
@@ -326,14 +347,21 @@ if __name__ == "__main__":
 #        ds_gtsm.to_netcdf("/gpfs/work1/0/einf3499/06_model_runs/03_postprocessing/EVA-GTSM-ERA5/period_1950_2024_1hr_selected_stations_CityLocs.nc");
 
         # open timeseries selection
-        ds_gtsm = xr.open_dataset("/gpfs/work1/0/einf3499/06_model_runs/03_postprocessing/EVA-GTSM-ERA5/period_1950_2024_1hr_selected_stations_CityLocs.nc");
-        
-        ds_gtsm['sea_level'] = ds_gtsm['waterlevel']
-        ds_gtsm = ds_gtsm.drop(['waterlevel'])
-        ds_gtsm = detrend(ds_gtsm)
-        ds_gtsm = ds_gtsm.drop(['sea_level'])
-        ds_gtsm = ds_gtsm.chunk({"time": -1, "stations": "auto"})
-        ds_gtsm.load()
+        #ds_gtsm = xr.open_dataset("/gpfs/work1/0/einf3499/06_model_runs/03_postprocessing/EVA-GTSM-ERA5/period_1950_2024_1hr_selected_stations_CityLocs.nc");
+
+        # detrending GTSM timeseries
+        ds_gtsm_sel = ds_gtsm.isel(stations=ids)
+        ds_gtsm_sel['sea_level'] = ds_gtsm_sel['waterlevel']
+        ds_gtsm_sel = ds_gtsm_sel.drop(['waterlevel'])
+        ds_gtsm_sel = detrend(ds_gtsm_sel)
+        ds_gtsm_sel = ds_gtsm_sel.drop(['sea_level'])
+        ds_gtsm_sel = ds_gtsm_sel.chunk({"time": -1, "stations": "auto"})
+
+        # detrending GESLA timeseries
+        ds_ges_sel = ds_ges_sel.isel(stations=ids_ges)
+        ds_ges_sel = detrend(ds_ges_sel)
+        ds_ges_sel = ds_ges_sel.drop(['sea_level'])
+        ds_ges_sel = ds_ges_sel.chunk({"time": -1, "stations": "auto"})
 
         vrange1=[-0.5,0.5]; vrange2=[0,0.02]; 
         cmap = mpl.colormaps['seismic']#.resampled(20)
@@ -357,7 +385,6 @@ if __name__ == "__main__":
             var = ds_gtsm.sea_level_detrended.sel(stations=stations[st_id]).to_dataframe().loc[:, 'sea_level_detrended'].dropna()
 
             varth = var.quantile(0.99); 
-
             model = EVA(var); del var
             model.get_extremes("POT", threshold=varth, r="72H");  del varth
             model.fit_model(distribution='genpareto',model='MLE')
@@ -452,7 +479,7 @@ if __name__ == "__main__":
         axs.append(plt.subplot2grid((3, 3), (2, 1), colspan=1, rowspan=1,sharex=axs[0]))
         axs.append(plt.subplot2grid((3, 3), (2, 2), colspan=1, rowspan=1,sharex=axs[0]))
 
-        cities = ['New York, USA','Lerwick, UK','IJmuiden, NL','Houston, USA','Aburatsu, Japan','Buenos Aires, Argentina','Rio de Janeiro, Brazil','Mombasa, Kenya']
+        cities = citynames
 
         #add global map
         rp_diff = np.array(ds_gtsm_eva1['100_bf']) - np.array(ds_gtsm_eva0['100_bf'])
@@ -472,23 +499,26 @@ if __name__ == "__main__":
 
             st_id = ids[citynames.index(cname)]
 
-            if stations[st_id] not in ds_gtsm['stations'].values:
-                continue
+            #if stations[st_id] not in ds_gtsm['stations'].values:
+            #    continue
 
             # plot location on the map
-            bs = axs[4].scatter(x=coord_x[st_id],y=coord_y[st_id],marker ='o',s=100,transform=crt.crs.PlateCarree(),facecolors='none',edgecolors='red',linewidth=1); 
+            bs = axs[4].scatter(x=ds_gtsm.station_x_coordinate.values[st_id],
+                                y=ds_gtsm.station_y_coordinate.values[st_id],
+                                marker ='o',s=50,transform=crt.crs.PlateCarree(),
+                                facecolors='none',edgecolors='k',linewidth=2); 
             
-            # prepare EVA outputs
-            var = ds_gtsm.sea_level_detrended.sel(stations=stations[st_id]).to_dataframe().loc[:, 'sea_level_detrended'].dropna()
+            # prepare EVA outputs - full period
+            var = ds_gtsm_sel.sea_level_detrended.isel(stations=cc).to_dataframe().loc[:, 'sea_level_detrended'].dropna()
             varth = var.quantile(var_quant); 
             model = EVA(var); del var
             model.get_extremes("POT", threshold=varth, r="72H");  del varth
             model.fit_model(distribution='genpareto',model='MLE')
-            
             model_observed_rv = get_return_periods(ts=model.data,extremes=model.extremes, extremes_method=model.extremes_method,extremes_type=model.extremes_type, block_size=model.extremes_kwargs.get("block_size", None))
             model_observed_rv = model_observed_rv.drop(model_observed_rv[model_observed_rv['return period'] < 0.5].index)
 
-            var = ds_gtsm.sea_level_detrended.sel(stations=stations[st_id],time=slice("1979-01-01", "2019-01-01")).to_dataframe().loc[:, 'sea_level_detrended'].dropna()
+            # prepare EVA outputs - short period
+            var = ds_gtsm_sel.sea_level_detrended.isel(stations=cc).sel(time=slice("1979-01-01", "2024-01-01")).to_dataframe().loc[:, 'sea_level_detrended'].dropna()
             varth = var.quantile(var_quant)
             model_short = EVA(var); del var
             model_short.get_extremes("POT", threshold=varth, r="72H"); del varth
@@ -496,9 +526,19 @@ if __name__ == "__main__":
             model_short_observed_rv = get_return_periods(ts=model_short.data,extremes=model_short.extremes, extremes_method=model_short.extremes_method,extremes_type=model_short.extremes_type, block_size=model_short.extremes_kwargs.get("block_size", None))
             model_short_observed_rv = model_short_observed_rv.drop(model_short_observed_rv[model_short_observed_rv['return period'] < 0.5].index)
 
+            # prepare EVA outputs - observations
+            var = ds_ges_sel.sea_level_detrended.isel(stations=cc).to_dataframe().loc[:, 'sea_level_detrended'].dropna()
+            varth = var.quantile(var_quant); 
+            model_ges = EVA(var); del var
+            model_ges.get_extremes("POT", threshold=varth, r="72H");  del varth
+            model_ges.fit_model(distribution='genpareto',model='MLE')
+            model_ges_observed_rv = get_return_periods(ts=model_ges.data,extremes=model_ges.extremes, extremes_method=model_ges.extremes_method,extremes_type=model_ges.extremes_type, block_size=model_ges.extremes_kwargs.get("block_size", None))
+            model_ges_observed_rv = model_ges_observed_rv.drop(model_ges_observed_rv[model_ges_observed_rv['return period'] < 0.5].index)
+
             # get pandas with EVA results for plotting
             model_summary = model.get_summary(return_period=[0.5,1,2,5,8,9,10,20,30,40,50,70,100],alpha=0.95)
             model_short_summary = model_short.get_summary(return_period=[0.5,1,2,5,8,9,10,20,30,40,50,70,100],alpha=0.95)
+            model_ges_summary = model_ges.get_summary(return_period=[0.5,1,2,5,8,9,10,20,30,40,50,70,100],alpha=0.95)
 
             # plot EVA confidence intervals together for comparison
             ax.semilogx()
@@ -507,26 +547,32 @@ if __name__ == "__main__":
 
             # plot confidence intervals
             for col in ["lower ci", "upper ci"]:
+                ax.plot(model_ges_summary.index.values,model_ges_summary.loc[:, col].values,color="#616161",lw=1,ls="--",zorder=13)
                 ax.plot(model_summary.index.values,model_summary.loc[:, col].values,color="#5199FF",lw=1,ls="--",zorder=14)
                 ax.plot(model_short_summary.index.values,model_short_summary.loc[:, col].values,color="#ff6e51",lw=1,ls="--",zorder=15)
+                
+            ax.fill_between(model_ges_summary.index.values,model_ges_summary.loc[:, "lower ci"].values,model_ges_summary.loc[:, "upper ci"].values, facecolor="#616161",edgecolor="None",alpha=0.25,zorder=8)
             ax.fill_between(model_summary.index.values,model_summary.loc[:, "lower ci"].values,model_summary.loc[:, "upper ci"].values, facecolor="#5199FF",edgecolor="None",alpha=0.25,zorder=9)
             ax.fill_between(model_short_summary.index.values,model_short_summary.loc[:, "lower ci"].values,model_short_summary.loc[:, "upper ci"].values, facecolor="#ff6e51",edgecolor="None",alpha=0.25,zorder=10)
-
+            
             # Plot observed values
+            ax.scatter(model_ges_observed_rv.loc[:, "return period"].values, model_ges_observed_rv.loc[:, model_ges_observed_rv.columns[0]].values,marker="o",s=15,lw=1,facecolor="#616161",edgecolor="None",zorder=19)
             ax.scatter(model_observed_rv.loc[:, "return period"].values, model_observed_rv.loc[:, model_observed_rv.columns[0]].values,marker="o",s=15,lw=1,facecolor="#5199FF",edgecolor="None",zorder=20)
             ax.scatter(model_short_observed_rv.loc[:, "return period"].values, model_short_observed_rv.loc[:, model_short_observed_rv.columns[0]].values,marker="o",s=15,lw=1,facecolor="#ff6e51",edgecolor="None",zorder=20)
             
             # plot fits
+            ax.plot(model_ges_summary.index.values,model_ges_summary.loc[:, "return value"].values,color="#616161",lw=2,ls="-",zorder=26,label='GESLA observations (1950-2020)')
             ax.plot(model_summary.index.values,model_summary.loc[:, "return value"].values,color="#285fad",lw=2,ls="-",zorder=24,label='GTSM-ERA5-E (1950-2024)')
             ax.plot(model_short_summary.index.values,model_short_summary.loc[:, "return value"].values,color="#b8391f",lw=2,ls="-",zorder=25,label='GTSM-ERA5 (1979-2018)')
-
             from math import floor, ceil
             
-            ylim1 = floor(np.min(model_observed_rv.loc[:, model_observed_rv.columns[0]].values)*10)/10
-            ylim2 = ceil(np.max(model_observed_rv.loc[:, model_observed_rv.columns[0]].values)*10)/10
+            ylim1 = floor(np.min([np.min(model_observed_rv.loc[:, model_observed_rv.columns[0]].values),
+                                 np.min(model_ges_observed_rv.loc[:, model_ges_observed_rv.columns[0]].values)])*10)/10
+            ylim2 = ceil(np.max([np.max(model_observed_rv.loc[:, model_observed_rv.columns[0]].values),
+                                 np.max(model_ges_observed_rv.loc[:, model_ges_observed_rv.columns[0]].values)])*10)/10
             
             ax.set_xlim([0.5,100])
-            ax.set_ylim([ylim1,ylim2])
+            ax.set_ylim([ylim1*0.9,ylim2*1.1])
             
             if cc>4:
                 ax.set_xlabel("Return period")
