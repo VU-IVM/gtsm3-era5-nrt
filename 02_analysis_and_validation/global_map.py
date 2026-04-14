@@ -22,7 +22,7 @@ def global_map(ax):
     #bs=ax.scatter(x=ds['station_x_coordinate'],y=ds['station_y_coordinate'],
     #                     s=100,c=ds,transform=crg)
     # Format lat lon grid    
-    gl = ax.gridlines(crs=crg, draw_labels=True, linewidth=0.5, color='gray', alpha=0.5, linestyle='--')
+    gl = ax.gridlines(crs=crg, draw_labels=False, linewidth=0.5, color='gray', alpha=0.5, linestyle='--')
     gl.yline = gl.xlines = True
     gl.xformatter = LONGITUDE_FORMATTER
     gl.yformatter = LATITUDE_FORMATTER

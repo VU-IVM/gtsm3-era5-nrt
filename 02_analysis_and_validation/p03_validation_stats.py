@@ -32,7 +32,8 @@ if __name__ == "__main__":
     dir_eva_main = r'p:\archivedprojects\11210221-gtsm-reanalysis\GTSM-ERA5-E_dataset\EVA-GTSM-ERA5'
 
     dir_out = r'p:\1230882-emodnet_hrsm\GTSM-ERA5\validation\gesla\validation_plots'
-
+    dir_out_stats = r'p:\1230882-emodnet_hrsm\GTSM-ERA5\validation\gesla\validation_stats'
+    
     # Get GESLA data
     filename_geslaselection = r'p:\1230882-emodnet_hrsm\GTSM-ERA5\validation\gesla\period_1950_2024_1hr_selected_stations_GESLA_filtered.nc'
     stationlist = r'p:\1230882-emodnet_hrsm\GTSM-ERA5\validation\gesla\overview\waterlevel_data_netcdf_overview_filtered_75perc_bothperiods.csv'
@@ -40,7 +41,8 @@ if __name__ == "__main__":
 
     # read GESLA dataset
     #file_gesla = os.path.join('/gpfs/work1/0/einf3499/','data','ds_gesla_1950_2022_allstations_50yr_max25prt_missing.nc')
-    file_gesla = r'c:\Users\aleksand\OneDrive - Stichting Deltares\Documents\Projects\GTSM-ERA5\paper_GTSM-ERA5-E\analysis\gesla\ds_gesla_1950_2022_allstations_50yr_max25prt_missing.nc'
+    #file_gesla = r'c:\Users\aleksand\OneDrive - Stichting Deltares\Documents\Projects\GTSM-ERA5\paper_GTSM-ERA5-E\analysis\gesla\ds_gesla_1950_2022_allstations_50yr_max25prt_missing.nc'
+    file_gesla = r'p:\archivedprojects\11210221-gtsm-reanalysis\GESLA\ds_gesla_1950_2022_allstations_50yr_max25prt_missing.nc'
     ds_ges = xr.open_dataset(file_gesla);    
     
     # Keep only preselected stations with long records and good coverage
@@ -59,7 +61,7 @@ if __name__ == "__main__":
         ["station"]
     )
     ds_ges = ds_ges.sel(stations=best_stations.values)
-
+    ds_ges = ds_ges.rename({"sea_level": "waterlevel"})
     # read GTSM dataset coordinates
     dir_wlts = r'p:\archivedprojects\11210221-gtsm-reanalysis\GTSM-ERA5-E_dataset\waterlevel'
 
@@ -126,8 +128,8 @@ if __name__ == "__main__":
                 ds.close(); del ds
         
         # # save timeseries selection 
-        filename_geslaselection = r'p:\1230882-emodnet_hrsm\GTSM-ERA5\validation\gesla\period_1950_2024_1hr_selected_stations_GESLA_filtered.nc'
-        #ds_gtsm.to_netcdf(filename_geslaselection)
+        filename_geslaselection = r'p:\1230882-emodnet_hrsm\GTSM-ERA5\validation\gesla\period_1950_2024_1hr_selected_stations_GESLA_filtered_v2.nc'
+        ds_gtsm.to_netcdf(filename_geslaselection)
     else:
         ds_gtsm = xr.open_dataset(filename_geslaselection,chunks={'stations': 30})
    
@@ -154,6 +156,13 @@ if __name__ == "__main__":
     all_mape_yr = np.zeros(shape=(len(ids_gtsm), 2))
     all_rmse_yr = np.zeros(shape=(len(ids_gtsm), 2))
     all_corr_yr = np.zeros(shape=(len(ids_gtsm), 2))
+
+    def detrend(ds: xr.DataArray, plot = False):
+        ''' remove annual means'''
+        ds = ds.assign_coords(year=ds.time.dt.strftime("%Y"))
+        ds_new = (ds.groupby("year") - ds.groupby("year").mean("time"))
+        ds['waterlevel'] = ds_new['waterlevel'] - ds_new['waterlevel'].mean()
+        return ds
     
     for ss in range(0,len(ids_gtsm)):
         st_gtsm = stations[ids_gtsm[ss]]
@@ -161,13 +170,19 @@ if __name__ == "__main__":
 
         print('processing station ',ss,' out of ', len(ids_gtsm))
 
-        ts_gesla = ds_ges.sea_level.isel(stations=st_num_ges)
+        ds_gesla_sel = ds_ges.isel(stations=st_num_ges)
         # reference level correction
-        ts_gesla = ts_gesla - np.nanmean(ts_gesla.sel(time=slice('1986-01-01','2005-12-31')).values) 
+        ds_gesla_sel['waterlevel'] = ds_gesla_sel['waterlevel'] - np.nanmean(ds_gesla_sel['waterlevel'].sel(time=slice('1986-01-01','2005-12-31')).values) 
 
-        ts_gtsm = ds_gtsm.waterlevel.sel(stations=st_gtsm).sel(time=slice('01-01-1950','31-12-2020'))
+        ds_gtsm_sel = ds_gtsm.sel(stations=st_gtsm).sel(time=slice('01-01-1950','31-12-2020'))
+        ds_gtsm_sel.load()
 
-        ts_gtsm.load()
+        ds_gesla_sel = detrend(ds_gesla_sel)
+        ds_gtsm_sel = detrend(ds_gtsm_sel)
+
+        ts_gesla = ds_gesla_sel.waterlevel
+        ts_gtsm = ds_gtsm_sel.waterlevel
+        del ds_gesla_sel, ds_gtsm_sel
 
         if np.ndim(ts_gtsm.stations.values)>0:
             ts_gtsm = ts_gtsm.isel(stations=0)
@@ -214,6 +229,7 @@ if __name__ == "__main__":
                               pearsonr(ts_gtsm_am.sel(year=slice(1979,2020)).values[~np.isnan(ts_gtsm_am.sel(year=slice(1979,2020)).values)], ts_gesla_am.sel(year=slice(1979,2020)).values[~np.isnan(ts_gesla_am.sel(year=slice(1979,2020)).values)]).statistic]
         all_rmse_yr[ss] = [np.sqrt(((ts_gtsm_am.sel(year=slice(1950,1978)).values[~np.isnan(ts_gtsm_am.sel(year=slice(1950,1978)).values)] - ts_gesla_am.sel(year=slice(1950,1978)).values[~np.isnan(ts_gesla_am.sel(year=slice(1950,1978)).values)]) ** 2).mean()), 
                               np.sqrt(((ts_gtsm_am.sel(year=slice(1979,2020)).values[~np.isnan(ts_gtsm_am.sel(year=slice(1979,2020)).values)] - ts_gesla_am.sel(year=slice(1979,2020)).values[~np.isnan(ts_gesla_am.sel(year=slice(1979,2020)).values)]) ** 2).mean())]
+
         all_bias_yr[ss] = [np.nanmean(ts_gtsm_am.sel(year=slice(1950,1978)).values - ts_gesla_am.sel(year=slice(1950,1978)).values),
                               np.nanmean(ts_gtsm_am.sel(year=slice(1979,2020)).values - ts_gesla_am.sel(year=slice(1979,2020)).values)] 
         all_mae_yr[ss] = [np.nanmean(np.abs(ts_gtsm_am.sel(year=slice(1950,1978)).values - ts_gesla_am.sel(year=slice(1950,1978)).values)),
@@ -284,15 +300,16 @@ if __name__ == "__main__":
             ax4.text(tmp,-tmp,f'corr={np.round(corr.statistic,3)}', verticalalignment ='bottom', horizontalalignment ='right', fontsize = 14, fontweight ='bold');
             ax4.set_xlabel('GTSM-ERA5 [m]'); ax4.set_ylabel('GESLA [m]'); ax4.set_title('1979-2020')
 
-            figname = f'validation_{str(int(ts_gtsm.stations.values)).zfill(5)}_{ds_ges.station_name.values[ids_ges[ss]]}.png' 
+            figname = f'validation_{str(int(ts_gtsm.stations.values)).zfill(5)}_{ds_ges.station_name.values[ids_ges[ss]]}_detrended.png' 
             fig.savefig(f'{dir_out}/{figname}')
             plt.clf()
-            del ts_gtsm, ts_gesla
+
+        del ts_gtsm, ts_gesla
 
     # export data
 
     df_stats = pd.DataFrame({
-            "station": ds_gtsm.stations.values[ids_gtsm],
+            "station": stations[ids_gtsm],
             "station_name": ds_ges.station_name.values[ids_ges],
             "bias_day_1950_1978": all_bias_day[:,0],
             "bias_day_1979_2020": all_bias_day[:,1],
@@ -327,33 +344,125 @@ if __name__ == "__main__":
             "corr_year_1950_1978": all_corr_yr[:,0],
             "corr_year_1979_2020": all_corr_yr[:,1],
         })
-    df_stats.to_csv(os.path.join(dir_out,'statistics_validation_GTSM_vs_GESLA.csv'), index=False)
+    df_stats.to_csv(os.path.join(dir_out_stats,'statistics_validation_GTSM_vs_GESLA_detrended.csv'), index=False)
 
+
+    df_stats = pd.read_csv(os.path.join(dir_out_stats,'statistics_validation_GTSM_vs_GESLA_detrended.csv'))
+    
     # Make plots
+    mpl.rcParams.update({'font.size': 18})
+    plt.rcParams['figure.dpi'] = 300
+    plt.rcParams['savefig.dpi'] = 300
+    csize = 60
+    cmap = mpl.colormaps['viridis'].resampled(20)
+    cmap2 = mpl.colormaps['hot_r']#.resampled(20)
+    cmap3 = mpl.colormaps['magma_r'].resampled(20)
+    cmap4 = mpl.colormaps['seismic']#.resampled(20)
 
-    # # plot RMSE
-    # ax = global_map(axs[4])
-    # bs =ax.scatter(x=ds_ges.station_x_coordinate.values[ids_ges],y=ds_ges.station_y_coordinate.values[ids_ges],s=csize,c=all_ts_rmse_day[:,0],cmap=cmap3,transform=crt.crs.PlateCarree(),vmin=0, vmax=1);
-    # cbar = ax.cax.colorbar(bs); cbar.set_label('RMSE [m]',fontsize=20)
-    # ax.set_title('Root Mean Square Error (RMSE) \n of the daily maxima timeseries for GTSM-ERA5-E',fontsize=22);
 
-    # # plot Pearson corr. coeff.
-    # ax = global_map(axs[5])
-    # bs =ax.scatter(x=ds_ges.station_x_coordinate.values[ids_ges],y=ds_ges.station_y_coordinate.values[ids_ges],s=csize,c=all_ts_corr_day[:,0],cmap=cmap3,transform=crt.crs.PlateCarree(),vmin=0.4, vmax=1);
-    # cbar = ax.cax.colorbar(bs); cbar.set_label('Pearson corr. coef. [-]',fontsize=20)
-    # ax.set_title('Pearson correlation coefficient \n for daily maxima timeseries of GTSM-ERA5-E',fontsize=22);
+    fig = plt.figure(figsize=(20, 22))
+    axs = [fig.add_subplot(4, 2, i+1, projection=crt.crs.Robinson()) for i in range(8)]
+    fig.subplots_adjust(hspace=0.2, wspace=0.05)
 
-    # plot RMSE for annual maxima
+    #row_titles = ['Bias', 'MAPE', 'Pearson correlation', 'RMSE']
+    #row_y_positions = [0.88, 0.67, 0.47, 0.27]  # adjust to match row centres
+    #for title, y in zip(row_titles, row_y_positions):
+    #    fig.text(0.51, y, title, ha='center', va='bottom', fontsize=24, fontweight='bold')
+    # plot bias for annual maxima
+    # Remove lat/lon tick labels from all subplots
+
+            
+    ax = global_map(axs[0])
+    bs = ax.scatter(x=ds_gtsm.station_x_coordinate.values,
+                   y=ds_gtsm.station_y_coordinate.values,
+                   s=csize,c=df_stats['bias_year_1950_1978'],
+                   cmap='RdBu',transform=crt.crs.PlateCarree(),vmin=-0.5, vmax=0.5,
+                   edgecolor='gray',zorder=15)
+    ax.set_title('1950-1978',fontsize=22)
+
+    ax = global_map(axs[1])
+    bs = ax.scatter(x=ds_gtsm.station_x_coordinate.values,
+                   y=ds_gtsm.station_y_coordinate.values,
+                   s=csize,c=df_stats['bias_year_1979_2020'],
+                   cmap='RdBu',transform=crt.crs.PlateCarree(),vmin=-0.5, vmax=0.5,
+                   edgecolor='gray',zorder=15)
+    ax.set_title('1979-2020',fontsize=22)
+    cbar = fig.colorbar(bs, ax=[axs[0], axs[1]], orientation='horizontal', 
+                        location='bottom', pad=0.1, shrink=0.5, aspect=40)
+    cbar.set_label('Bias [m]',fontsize=20)
+
+    ax = global_map(axs[2])
+    bs = ax.scatter(x=ds_gtsm.station_x_coordinate.values,
+                   y=ds_gtsm.station_y_coordinate.values,
+                   s=csize,c=df_stats['mape_year_1950_1978']*100,
+                   cmap=cmap2,transform=crt.crs.PlateCarree(),vmin=0, vmax=50,
+                   edgecolor='gray',zorder=15)
+    ax.set_title('1950-1978',fontsize=22)
+
+    ax = global_map(axs[3])
+    bs = ax.scatter(x=ds_gtsm.station_x_coordinate.values,
+                   y=ds_gtsm.station_y_coordinate.values,
+                   s=csize,c=df_stats['mape_year_1979_2020']*100,
+                   cmap=cmap2,transform=crt.crs.PlateCarree(),vmin=0, vmax=50,
+                   edgecolor='gray',zorder=15)
+    ax.set_title('1979-2020',fontsize=22)
+    cbar = fig.colorbar(bs, ax=[axs[2], axs[3]], orientation='horizontal',
+                        location='bottom', pad=0.1, shrink=0.5, aspect=40)
+    cbar.set_label('MAPE [%]',fontsize=20)
+
+    # plot Pearson corr. coeff.
     ax = global_map(axs[4])
-    bs =ax.scatter(x=ds_ges.station_x_coordinate.values[ids_ges],y=ds_ges.station_y_coordinate.values[ids_ges],s=csize,c=all_ts_rmse_month[:,0],cmap='viridis',transform=crt.crs.PlateCarree(),vmin=0, vmax=1);
-    cbar = ax.cax.colorbar(bs); cbar.set_label('RMSE [m]',fontsize=20)
-    ax.set_title('Root Mean Square Error (RMSE) \n of the monthly maxima timeseries for GTSM-ERA5-E',fontsize=22);
+    bs = ax.scatter(x=ds_gtsm.station_x_coordinate.values,
+                   y=ds_gtsm.station_y_coordinate.values,
+                   s=csize,c=df_stats['corr_year_1950_1978'],
+                   cmap=cmap3,transform=crt.crs.PlateCarree(),vmin=0.4, vmax=1,
+                   edgecolor='gray',zorder=15)
+    ax.set_title('1950-1978',fontsize=22)
 
-    # plot Pearson corr. coeff. - annual maxima
     ax = global_map(axs[5])
-    bs =ax.scatter(x=ds_ges.station_x_coordinate.values[ids_ges],y=ds_ges.station_y_coordinate.values[ids_ges],s=csize,c=all_ts_corr_month[:,0],cmap='viridis_r',transform=crt.crs.PlateCarree(),vmin=0.4, vmax=1);
-    cbar = ax.cax.colorbar(bs); cbar.set_label('Pearson corr. coef. [-]',fontsize=20)
-    ax.set_title('Pearson correlation coefficient \n for monthly maxima timeseries of GTSM-ERA5-E',fontsize=22);
+    bs = ax.scatter(x=ds_gtsm.station_x_coordinate.values,
+                   y=ds_gtsm.station_y_coordinate.values,
+                   s=csize,c=df_stats['corr_year_1979_2020'],
+                   cmap=cmap3,transform=crt.crs.PlateCarree(),vmin=0.4, vmax=1,
+                   edgecolor='gray',zorder=15)
+    ax.set_title('1979-2020',fontsize=22)
+    cbar = fig.colorbar(bs, ax=[axs[4], axs[5]], orientation='horizontal', 
+                        location='bottom', pad=0.1, shrink=0.5, aspect=40)
+    cbar.set_label('Pearson correlation [-]',fontsize=20)
 
-    figname = 'Map_comparison_GESLA_v4.jpg'  
-    fig.savefig(f'{dir_eva_main}/{figname}',format='jpg',dpi=300)
+    ax = global_map(axs[6])
+    bs = ax.scatter(x=ds_gtsm.station_x_coordinate.values,
+                   y=ds_gtsm.station_y_coordinate.values,
+                   s=csize,c=df_stats['rmse_year_1950_1978'],
+                   cmap='viridis',transform=crt.crs.PlateCarree(),vmin=0, vmax=1,
+                   edgecolor='gray',zorder=15)
+    ax.set_title('1950-1978',fontsize=22)
+
+    ax = global_map(axs[7])
+    bs = ax.scatter(x=ds_gtsm.station_x_coordinate.values,
+                   y=ds_gtsm.station_y_coordinate.values,
+                   s=csize,c=df_stats['rmse_year_1979_2020'],
+                   cmap='viridis',transform=crt.crs.PlateCarree(),vmin=0, vmax=1,
+                   edgecolor='gray',zorder=15)
+    ax.set_title('1979-2020',fontsize=22)
+    cbar = fig.colorbar(bs, ax=[axs[6], axs[7]], orientation='horizontal', 
+                        location='bottom', pad=0.1, shrink=0.5, aspect=40)
+    cbar.set_label('RMSE [m]',fontsize=20)
+    figname = f'annual_maxima_comparison_detrended.jpg' 
+    fig.savefig(f'{dir_out_stats}/{figname}',format='jpg',dpi=300)
+
+
+ #%%
+# Export station coordinates + correlations to CSV
+df_corr_coords = pd.DataFrame({
+    "station_name": ds_ges.station_name.values[ids_ges],
+    "x": ds_ges.station_x_coordinate.values[ids_ges],
+    "y": ds_ges.station_y_coordinate.values[ids_ges],
+    "corr_year_1950_1978": df_stats["corr_year_1950_1978"].values,
+    "corr_year_1979_2020": df_stats["corr_year_1979_2020"].values,
+})
+
+out_csv = os.path.join(dir_out_stats, "gesla_station_coords_and_corr_year_detrended.csv")
+df_corr_coords.to_csv(out_csv, index=False)
+print(f"Saved: {out_csv}")
+# %%
