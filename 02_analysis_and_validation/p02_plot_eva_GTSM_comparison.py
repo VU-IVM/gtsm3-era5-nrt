@@ -51,7 +51,13 @@ if __name__ == "__main__":
     sys.path.append("..")
     from path_dict import path_dict
     dir_postproc = path_dict['postproc']
+
+    dir_ts_surge = path_dict['ts_surge']
+    dir_ts_surge = r'p:\archivedprojects\11210221-gtsm-reanalysis\GTSM-ERA5-E_dataset\surge'
+
     dir_eva = os.path.join(dir_postproc,'EVA-GTSM-ERA5')
+
+    dir_figures = r'p:\1230882-emodnet_hrsm\GTSM-ERA5\figures'
     
     #specify directories where timeseries data is stored
     dir_eva0 = os.path.join(dir_postproc,'EVA-GTSM-ERA5',f'period_{settings["yearmin0"]}_{settings["yearmax0"]}_{settings["mode0"]}_v2')
@@ -100,13 +106,14 @@ if __name__ == "__main__":
     ds_wl_q_ori = xr.open_mfdataset(file_list_nc); 
     del file_list_nc
    
-    # read surge quantiles 
-    file_list_nc = glob.glob(os.path.join(dir_eva,'surge_stats','GTSM_ERA5_quantiles_1950_1979_stations*.nc'))
-    ds_sur_q_ext = xr.open_mfdataset(file_list_nc)
-    del file_list_nc
-    file_list_nc = glob.glob(os.path.join(dir_eva,'surge_stats','GTSM_ERA5_quantiles_1990_2019_stations*.nc'))
-    ds_sur_q_ori = xr.open_mfdataset(file_list_nc)
-    del file_list_nc
+    # # read surge quantiles 
+    # file_list_nc = glob.glob(os.path.join(dir_eva,'surge_stats','GTSM_ERA5_quantiles_1950_1979_stations*.nc'))
+    # ds_sur_q_ext = xr.open_mfdataset(file_list_nc)
+    # del file_list_nc
+    # file_list_nc = glob.glob(os.path.join(dir_eva,'surge_stats','GTSM_ERA5_quantiles_1990_2019_stations*.nc'))
+    # ds_sur_q_ori = xr.open_mfdataset(file_list_nc)
+    # del file_list_nc
+
 
     # PLOTTING
     print('Plotting... ')
@@ -196,32 +203,66 @@ if __name__ == "__main__":
 
 
         # SURGE quantile differences
+        # mpl.rcParams.update({'font.size': 18})
+        # csize = 15
+        # fig = plt.figure(figsize=(17,8))
+        # axes_class = (GeoAxes, dict(projection=crt.crs.Robinson()))
+        # axs = AxesGrid(fig, 111, axes_class=axes_class, nrows_ncols=(1, 2), share_all=True, axes_pad=1.6,cbar_location='bottom',cbar_mode='each',cbar_size='8%',cbar_pad=0.4, label_mode='keep')
+
+        # # plot q99 surge
+        # ax = global_map(axs[0])
+        # bs = ax.scatter(x=ds_sur_q_ext.station_x_coordinate, y=ds_sur_q_ext.station_y_coordinate,
+        #                 s=csize, c=ds_sur_q_ext['surge'].sel(quantile=0.95).values, transform=crt.crs.PlateCarree(), cmap=cmap3, vmin=0, vmax=1.5);
+        # cbar = ax.cax.colorbar(bs); cbar.set_label('Surge height [m]',fontsize=20)
+        # ax.set_title('95th percentile values for surge height \n based on GTSM-ERA5-E (1950-1979)',fontsize=22);
+
+        # # plot q99 surge bias
+        # ax = global_map(axs[1])
+        # bs =ax.scatter(x=ds_sur_q_ext.station_x_coordinate, y=ds_sur_q_ext.station_y_coordinate,
+        #                s=csize, c=ds_sur_q_ext['surge'].sel(quantile=0.95).values-ds_sur_q_ori['surge'].sel(quantile=0.95).values,
+        #                cmap=cmap4,transform=crt.crs.PlateCarree(),vmin=-0.15, vmax=0.15);
+        
+        # cbar = ax.cax.colorbar(bs); cbar.set_label('Surge height difference [m]',fontsize=20)
+        # ax.set_title('Difference in 95th percentile values for surge height \n GTSM-ERA5-E (1950-1979) vs. GTSM-ERA5 (1990-2019)',fontsize=20);
+
+        # figname = 'Map_comparison_model_GTSM-ERA5-E_vs_GTSM-ERA5_surge_height_95th_perc.jpg'  
+        # fig.savefig(f'{dir_eva}/{figname}',format='jpg')   
+
+
+        # SURGE annual maxima differences
+        file_list_nc = glob.glob(os.path.join(dir_ts_surge,'*dailymax*.nc'))
+        ds_surge_dailymax = xr.open_mfdataset(file_list_nc)
+        ds_surge_yearmax = ds_surge_dailymax.groupby('time.year').max('time').compute()
+
         mpl.rcParams.update({'font.size': 18})
         csize = 15
         fig = plt.figure(figsize=(17,8))
         axes_class = (GeoAxes, dict(projection=crt.crs.Robinson()))
         axs = AxesGrid(fig, 111, axes_class=axes_class, nrows_ncols=(1, 2), share_all=True, axes_pad=1.6,cbar_location='bottom',cbar_mode='each',cbar_size='8%',cbar_pad=0.4, label_mode='keep')
 
-        # plot q99 surge
+        # plot annual maxima surge in 1950-1979 period
         ax = global_map(axs[0])
-        bs = ax.scatter(x=ds_sur_q_ext.station_x_coordinate, y=ds_sur_q_ext.station_y_coordinate,
-                        s=csize, c=ds_sur_q_ext['surge'].sel(quantile=0.95).values, transform=crt.crs.PlateCarree(), cmap=cmap3, vmin=0, vmax=1.5);
+        bs = ax.scatter(x=ds_surge_yearmax.station_x_coordinate, 
+                        y=ds_surge_yearmax.station_y_coordinate,
+                        s=csize, c=ds_surge_yearmax['surge'].sel(year=slice('1995','2024')).mean('year').values, 
+                        transform=crt.crs.PlateCarree(), cmap='magma_r', vmin=0, vmax=2);
         cbar = ax.cax.colorbar(bs); cbar.set_label('Surge height [m]',fontsize=20)
-        ax.set_title('95th percentile values for surge height \n based on GTSM-ERA5-E (1950-1979)',fontsize=22);
+        ax.set_title('Mean annual maxima for surge height \n based on GTSM-ERA5-E (1995-2024)',fontsize=22);
 
-        # plot q99 surge bias
+        # plot annual maxima surge difference
+        surge_am_diff = (ds_surge_yearmax['surge'].sel(year=slice('1950','1979')).mean('year').values-
+                       ds_surge_yearmax['surge'].sel(year=slice('1995','2024')).mean('year').values)
+
         ax = global_map(axs[1])
-        bs =ax.scatter(x=ds_sur_q_ext.station_x_coordinate, y=ds_sur_q_ext.station_y_coordinate,
-                       s=csize, c=ds_sur_q_ext['surge'].sel(quantile=0.95).values-ds_sur_q_ori['surge'].sel(quantile=0.95).values,
-                       cmap=cmap4,transform=crt.crs.PlateCarree(),vmin=-0.15, vmax=0.15);
+        bs =ax.scatter(x=ds_surge_yearmax.station_x_coordinate, y=ds_surge_yearmax.station_y_coordinate,
+                       s=csize, c=surge_am_diff,
+                       cmap='seismic',transform=crt.crs.PlateCarree(),vmin=-0.5, vmax=0.5);
         
         cbar = ax.cax.colorbar(bs); cbar.set_label('Surge height difference [m]',fontsize=20)
-        ax.set_title('Difference in 95th percentile values for surge height \n GTSM-ERA5-E (1950-1979) vs. GTSM-ERA5 (1990-2019)',fontsize=20);
+        ax.set_title('Difference in mean annual maxima for surge height \n GTSM-ERA5-E (1950-1979) vs. GTSM-ERA5 (1995-2024)',fontsize=20);
 
-        figname = 'Map_comparison_model_GTSM-ERA5-E_vs_GTSM-ERA5_surge_height_95th_perc.jpg'  
-        fig.savefig(f'{dir_eva}/{figname}',format='jpg')        
-
-
+        figname = 'Map_comparison_model_GTSM-ERA5-E_vs_GTSM-ERA5_surge_height_mean_annual_maxima.jpg'  
+        fig.savefig(f'{dir_figures}/{figname}',format='jpg')   
         
 
         # # Plot difference between RP100 and HAT
