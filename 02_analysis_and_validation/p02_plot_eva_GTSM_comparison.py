@@ -101,13 +101,14 @@ if __name__ == "__main__":
     # ds_wl_q_ori = xr.open_mfdataset(file_list_nc); 
     # del file_list_nc
    
-    # # read surge quantiles 
-    # file_list_nc = glob.glob(os.path.join(dir_eva,'surge_stats','GTSM_ERA5_quantiles_1950_1979_stations*.nc'))
-    # ds_sur_q_ext = xr.open_mfdataset(file_list_nc)
-    # del file_list_nc
-    # file_list_nc = glob.glob(os.path.join(dir_eva,'surge_stats','GTSM_ERA5_quantiles_1990_2019_stations*.nc'))
-    # ds_sur_q_ori = xr.open_mfdataset(file_list_nc)
-    # del file_list_nc
+    # read surge quantiles 
+    dir_eva_old = r'p:\archivedprojects\11210221-gtsm-reanalysis\GTSM-ERA5-E_dataset\EVA-GTSM-ERA5'
+    file_list_nc = glob.glob(os.path.join(dir_eva_old,'surge_stats','GTSM_ERA5_quantiles_1950_1979_stations*.nc'))
+    ds_sur_q_ext = xr.open_mfdataset(file_list_nc)
+    del file_list_nc
+    file_list_nc = glob.glob(os.path.join(dir_eva_old,'surge_stats','GTSM_ERA5_quantiles_1990_2019_stations*.nc'))
+    ds_sur_q_ori = xr.open_mfdataset(file_list_nc)
+    del file_list_nc
 
     # PLOTTING
     print('Plotting... ')
@@ -298,19 +299,24 @@ if __name__ == "__main__":
         #                [-32.06, 115.74], # Fremantle, Australia	
         #                [48.42, -123.37] # Victoria, Canada	
         #                ]
-        dict_names = {'Klagshamn':'Klagshamn, Sweden',
-                      'Kristiansund':'Kristiansund',
-                      'Montauk':'Montauk, USA',
-                      'Lewes_DE': 'Lewes, USA',
-                      'Pensacola_FL':'Pensacola, USA',
-                      'Cuxhaven_Steubenhoft':'Cuxhaven, Germany',
-                      'Sewells_Point':'Sewells Point, USA',
-                      'New_London_CT':'New London, USA'}
+        # dict_names = {#'Klagshamn':'Klagshamn, Sweden',
+        #               'Charlottetown':'Charlottetown, Canada',
+        #               'Fernandina_Beach':'Fernandina Beach, USA',
+        #               'Narvik':'Narvik, Norway',
+        #               'Sitka': 'Sitka, USA',
+        #               'Pensacola_FL':'Pensacola, USA',
+        #               'Cuxhaven':'Cuxhaven, Germany',
+        #               'Sewells_Point':'Sewells Point, USA',
+        #               'New_London_CT':'New London, USA'}
         
-        # dict_names = {'Bergen':'Bergen, Norway','Newlyn_Cornwall':'Newlyn, UK',
-        #               'Esbjerg':'Esbjerg, Denmark','New_York_NY':'New York, USA',
-        #               'Galveston_Pier_21':'Galveston, USA','Hosojima':'Hosojima, Japan',
-        #               'Fremantle':'Fremantle, Australia','Victoria_BC':'Victoria, Canada'}
+        dict_names = {'Bergen':'Bergen, Norway',
+                      'Newlyn_Cornwall':'Newlyn, UK',
+                      'Esbjerg':'Esbjerg, Denmark',
+                      'Cuxhaven':'Cuxhaven, Germany',
+                      'Galveston_Pier_21':'Galveston, USA',
+                      'Montauk':'Montauk, USA',
+                      'Hosojima':'Hosojima, Japan',
+                      'Fremantle':'Fremantle, Australia'}
 
         ds_ges = xr.open_dataset(r'p:\archivedprojects\11210221-gtsm-reanalysis\GESLA\ds_gesla_1950_2022_allstations_50yr_max25prt_missing.nc')
 

@@ -43,10 +43,13 @@ ds_ges_sel = ds_ges_sel.isel(stations=unique_idx)
 #tidal analysis
 const_list = hatyan.get_const_list_hatyan("year")
 
-for ii, stname in enumerate(ds_ges_sel.station_name.values):
+for ii in range(len(ds_ges_sel.station_name.values)):
 
-    # if ii < 60:
-    #     continue
+    stname = ds_ges_sel.station_name.values[ii]
+
+    #if (ii < 55) or (ii > 60):
+    #    continue
+
     stname = str(stname)
     print(f"{ii}: {stname}")
     st_x = ds_ges_sel.sel(station_name=stname).station_x_coordinate.values
@@ -80,7 +83,7 @@ for ii, stname in enumerate(ds_ges_sel.station_name.values):
     expected = ts_ges.resample('YE').size().apply(lambda n: n)  # actual slots after resampling
     valid = ts_ges['values'].resample('YE').count()           # non-NaN count
 
-    # Keep only years with >= 50% valid data
+    # Keep only years with >= 80% valid data
     good_years = valid.index.year[valid.values / expected.values >= 0.8]
 
     ts_ges_clean = ts_ges[ts_ges.index.year.isin(good_years)]
@@ -94,7 +97,17 @@ for ii, stname in enumerate(ds_ges_sel.station_name.values):
     fig.savefig(os.path.join(dir_fig, f"{stname}_tidal_analysis.png"), dpi=200)
     plt.close()
 
-    ts_prediction = hatyan.prediction(comp=comp_mean, times=ts_ges.index)
+    for period in comp_allperiods['A'].keys():
+        # calculate predicted ts for each year and stack in one dataframe timeseries
+        comp_period = pd.DataFrame({'A': comp_allperiods['A'][period], 'phi_deg': comp_allperiods['phi_deg'][period]})
+        comp_period.attrs = comp_mean.attrs.copy()
+        ts_year = hatyan.prediction(comp=comp_period, times=ts_ges[ts_ges.index.year == period.year].index)
+        if period == list(comp_allperiods['A'].keys())[0]:
+            ts_prediction = ts_year
+        else:
+            ts_prediction = pd.concat([ts_prediction, ts_year])
+
+
     fig, (ax1,ax2) = hatyan.plot_timeseries(ts=ts_prediction, ts_validation=ts_ges)
     ax1.legend(['prediction','measurement','difference','mean of prediction'])
     ax2.set_ylim(-1,1)
@@ -130,17 +143,20 @@ files_gtsm_sur = [x.replace('waterlevel','surge') for x in files_gtsm]
 ds_sur = xr.open_mfdataset(files_gtsm_sur)
 ds_sur = ds_sur.chunk({'time': 720, 'stations': 2000}) 
 
-for ii, stname in enumerate(ds_ges_sel.station_name.values):
+for ii in range(len(ds_ges_sel.station_name.values)):
+    
+    if (ii < 55) or (ii > 60):
+        continue
 
-    # if ii < 60:
-    #     continue
+    stname = str(ds_ges_sel.station_name.values[ii])
+
     stname = str(stname)
     print(f"{ii}: {stname}")
 
     # open GESLA data that includes tide and surge
     ds_ges_st = xr.open_dataset(os.path.join(dir_fig, f"{stname}_tide_surge.nc"))
     ds_ges_st = ds_ges_st.sel(time=slice(f"{year}-01-01", f"{year}-12-31")).load()
-    ds_ges_st['surge'] = ds_ges_st['surge'] - ds_ges_st['surge'].mean()
+    ds_ges_st['surge'] = ds_ges_st['surge'] - ds_ges_st['surge'].mean(skipna=True)
     # resample to daily max
     ds_ges_st = ds_ges_st.resample(time='1D').max()
 
@@ -156,7 +172,7 @@ for ii, stname in enumerate(ds_ges_sel.station_name.values):
 
     ds_wl_st = ds_wl.sel(stations=station).load()
     ds_sur_st = ds_sur.sel(stations=station).load()
-    ds_sur_st['surge'] = ds_sur_st['surge'] - ds_sur_st['surge'].mean()
+    ds_sur_st['surge'] = ds_sur_st['surge'] - ds_sur_st['surge'].mean(skipna=True)
     ds_sur_st = ds_sur_st.resample(time='1D').max()
 
     # reindex GESLA to GTSM time axis, filling missing timesteps with NaN

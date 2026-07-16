@@ -89,11 +89,13 @@ if __name__ == "__main__":
                 ds.close(); del ds
         
         ds_gtsm.to_netcdf(filename_gtsm)
+    else:
+        ds_gtsm = xr.open_dataset(filename_gtsm,chunks={'stations': 1000}); ds_gtsm.close()
 
    #%%
     # Calculate metrics
 
-    make_plot = 0
+    make_plot = 1
 
     # create arrays for statistics
     stations_gtsm = np.zeros(shape=(len(geslalist), 1))
@@ -354,16 +356,16 @@ if __name__ == "__main__":
     ax = global_map(axs[0])
     bs = ax.scatter(x=ds_gtsm.sel(stations=df_stats['station'].values).station_x_coordinate.values,
                    y=ds_gtsm.sel(stations=df_stats['station'].values).station_y_coordinate.values,
-                   s=csize,c=df_stats['bias_year_1950_1978'],
-                   cmap='RdBu',transform=crt.crs.PlateCarree(),vmin=-0.5, vmax=0.5,
+                   s=csize,c=df_stats['bias_month_1950_1978'],
+                   cmap='RdBu',transform=crt.crs.PlateCarree(),vmin=-0.3, vmax=0.3,
                    edgecolor='gray',zorder=15)
     ax.set_title('1950-1978',fontsize=22)
 
     ax = global_map(axs[1])
     bs = ax.scatter(x=ds_gtsm.sel(stations=df_stats['station'].values).station_x_coordinate.values,
                    y=ds_gtsm.sel(stations=df_stats['station'].values).station_y_coordinate.values,
-                   s=csize,c=df_stats['bias_year_1979_2020'],
-                   cmap='RdBu',transform=crt.crs.PlateCarree(),vmin=-0.5, vmax=0.5,
+                   s=csize,c=df_stats['bias_month_1979_2020'],
+                   cmap='RdBu',transform=crt.crs.PlateCarree(),vmin=-0.3, vmax=0.3,
                    edgecolor='gray',zorder=15)
     ax.set_title('1979-2020',fontsize=22)
     cbar = fig.colorbar(bs, ax=[axs[0], axs[1]], orientation='horizontal', 
@@ -373,7 +375,7 @@ if __name__ == "__main__":
     ax = global_map(axs[2])
     bs = ax.scatter(x=ds_gtsm.sel(stations=df_stats['station'].values).station_x_coordinate.values,
                    y=ds_gtsm.sel(stations=df_stats['station'].values).station_y_coordinate.values,
-                   s=csize,c=df_stats['mape_year_1950_1978']*100,
+                   s=csize,c=df_stats['mape_month_1950_1978']*100,
                    cmap=cmap2,transform=crt.crs.PlateCarree(),vmin=0, vmax=50,
                    edgecolor='gray',zorder=15)
     ax.set_title('1950-1978',fontsize=22)
@@ -381,7 +383,7 @@ if __name__ == "__main__":
     ax = global_map(axs[3])
     bs = ax.scatter(x=ds_gtsm.sel(stations=df_stats['station'].values).station_x_coordinate.values,
                    y=ds_gtsm.sel(stations=df_stats['station'].values).station_y_coordinate.values,
-                   s=csize,c=df_stats['mape_year_1979_2020']*100,
+                   s=csize,c=df_stats['mape_month_1979_2020']*100,
                    cmap=cmap2,transform=crt.crs.PlateCarree(),vmin=0, vmax=50,
                    edgecolor='gray',zorder=15)
     ax.set_title('1979-2020',fontsize=22)
@@ -393,16 +395,16 @@ if __name__ == "__main__":
     ax = global_map(axs[4])
     bs = ax.scatter(x=ds_gtsm.sel(stations=df_stats['station'].values).station_x_coordinate.values,
                    y=ds_gtsm.sel(stations=df_stats['station'].values).station_y_coordinate.values,
-                   s=csize,c=df_stats['corr_year_1950_1978'],
-                   cmap=cmap3,transform=crt.crs.PlateCarree(),vmin=0.4, vmax=1,
+                   s=csize,c=df_stats['corr_month_1950_1978'],
+                   cmap=cmap3,transform=crt.crs.PlateCarree(),vmin=0, vmax=1,
                    edgecolor='gray',zorder=15)
     ax.set_title('1950-1978',fontsize=22)
 
     ax = global_map(axs[5])
     bs = ax.scatter(x=ds_gtsm.sel(stations=df_stats['station'].values).station_x_coordinate.values,
                    y=ds_gtsm.sel(stations=df_stats['station'].values).station_y_coordinate.values,
-                   s=csize,c=df_stats['corr_year_1979_2020'],
-                   cmap=cmap3,transform=crt.crs.PlateCarree(),vmin=0.4, vmax=1,
+                   s=csize,c=df_stats['corr_month_1979_2020'],
+                   cmap=cmap3,transform=crt.crs.PlateCarree(),vmin=0, vmax=1,
                    edgecolor='gray',zorder=15)
     ax.set_title('1979-2020',fontsize=22)
     cbar = fig.colorbar(bs, ax=[axs[4], axs[5]], orientation='horizontal', 
@@ -412,22 +414,23 @@ if __name__ == "__main__":
     ax = global_map(axs[6])
     bs = ax.scatter(x=ds_gtsm.sel(stations=df_stats['station'].values).station_x_coordinate.values,
                    y=ds_gtsm.sel(stations=df_stats['station'].values).station_y_coordinate.values,
-                   s=csize,c=df_stats['rmse_year_1950_1978'],
-                   cmap='viridis',transform=crt.crs.PlateCarree(),vmin=0, vmax=1,
+                   s=csize,c=df_stats['rmse_month_1950_1978'],
+                   cmap='viridis',transform=crt.crs.PlateCarree(),vmin=0, vmax=0.3,
                    edgecolor='gray',zorder=15)
     ax.set_title('1950-1978',fontsize=22)
 
     ax = global_map(axs[7])
     bs = ax.scatter(x=ds_gtsm.sel(stations=df_stats['station'].values).station_x_coordinate.values,
                    y=ds_gtsm.sel(stations=df_stats['station'].values).station_y_coordinate.values,
-                   s=csize,c=df_stats['rmse_year_1979_2020'],
-                   cmap='viridis',transform=crt.crs.PlateCarree(),vmin=0, vmax=1,
+                   s=csize,c=df_stats['rmse_month_1979_2020'],
+                   cmap='viridis',transform=crt.crs.PlateCarree(),vmin=0, vmax=0.3,
                    edgecolor='gray',zorder=15)
     ax.set_title('1979-2020',fontsize=22)
     cbar = fig.colorbar(bs, ax=[axs[6], axs[7]], orientation='horizontal', 
                         location='bottom', pad=0.1, shrink=0.5, aspect=40)
     cbar.set_label('RMSE [m]',fontsize=20)
-    figname = f'annual_maxima_comparison_surge_detrended.jpg' 
+    plt.suptitle('Monthly maxima validation', fontsize=24, fontweight='bold')
+    figname = f'monthly_maxima_comparison_surge_detrended.jpg' 
     fig.savefig(f'{dir_out_stats}/{figname}',format='jpg',dpi=300)
 
 
